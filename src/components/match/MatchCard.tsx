@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import Image from 'next/image'
 import type { Match } from '@/lib/types'
 import { LiveIndicator } from './LiveIndicator'
@@ -11,10 +12,10 @@ interface MatchCardProps {
 
 function formatTime(isoString: string): string {
   const date = new Date(isoString)
-  return date.toLocaleTimeString('en-GB', {
+  return date.toLocaleTimeString(undefined, {
     hour: '2-digit',
     minute: '2-digit',
-    timeZone: 'UTC',
+    hour12: false,
   })
 }
 
@@ -22,7 +23,10 @@ export function MatchCard({ match }: MatchCardProps) {
   const accentColor = match.league.color
 
   return (
-    <div className="group relative overflow-hidden rounded-xl bg-[#141414] border border-[#262626] transition-all duration-200 hover:border-[#404040]">
+    <Link
+      href={`/match/${match.id}`}
+      className="group relative block overflow-hidden rounded-xl bg-[#141414] border border-[#262626] transition-all duration-200 hover:border-[#404040] cursor-pointer"
+    >
       <div
         className="absolute left-0 top-0 bottom-0 w-1"
         style={{ backgroundColor: accentColor }}
@@ -74,9 +78,14 @@ export function MatchCard({ match }: MatchCardProps) {
                     {match.score.away}
                   </span>
                 </div>
+                {match.score.ht && (
+                  <span className="mt-1 text-xs text-[#666]">
+                    HT {match.score.ht.home}-{match.score.ht.away}
+                  </span>
+                )}
                 {match.status === 'live' && match.minute && (
                   <span className="mt-1 text-sm text-[#ef4444] font-medium">
-                    {match.minute}'
+                    {match.minute}&apos;
                   </span>
                 )}
               </>
@@ -115,6 +124,6 @@ export function MatchCard({ match }: MatchCardProps) {
           </div>
         )}
       </div>
-    </div>
+    </Link>
   )
 }

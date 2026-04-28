@@ -11,6 +11,10 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: '*.sofascore.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'media.api-sports.io',
+      },
     ],
   },
 };
