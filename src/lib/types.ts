@@ -1,3 +1,5 @@
+export type Sport = 'football' | 'basketball' | 'mma'
+
 export type MatchStatus = 'upcoming' | 'live' | 'finished'
 
 export type MatchEventType =
@@ -8,6 +10,21 @@ export type MatchEventType =
   | 'yellow_card'
   | 'red_card'
   | 'subst'
+  | 'two_points'
+  | 'three_points'
+  | 'free_throw'
+  | 'foul'
+  | 'timeout'
+  | 'turnover'
+
+export interface SportConfig {
+  sport: Sport
+  eventIcons: Record<MatchEventType, string>
+  eventLabels: Record<MatchEventType, string>
+  scoreLabel: string
+  periodLabel: string
+  periods: number
+}
 
 export type StreamLinkType = 'tv' | 'stream'
 
@@ -33,6 +50,7 @@ export interface Score {
     home: number
     away: number
   }
+  qt?: number[]
 }
 
 export interface MatchEvent {
@@ -42,6 +60,7 @@ export interface MatchEvent {
   team?: 'home' | 'away'
   assist?: string
   comment?: string
+  extra?: Record<string, unknown>
 }
 
 export interface StreamLink {
@@ -52,6 +71,7 @@ export interface StreamLink {
 
 export interface Match {
   id: string
+  sport: Sport
   homeTeam: Team
   awayTeam: Team
   status: MatchStatus
@@ -80,4 +100,89 @@ export const LEAGUE_COLORS: Record<string, string> = {
 
 export function getLeagueColor(leagueName: string): string {
   return LEAGUE_COLORS[leagueName] || LEAGUE_COLORS['default']
+}
+
+export const FOOTBALL_CONFIG: SportConfig = {
+  sport: 'football',
+  eventIcons: {
+    goal: '⚽',
+    own_goal: '⚽',
+    penalty: '⚽',
+    missed_penalty: '✕',
+    yellow_card: '🟨',
+    red_card: '🟥',
+    subst: '🔄',
+    two_points: '',
+    three_points: '',
+    free_throw: '',
+    foul: '',
+    timeout: '',
+    turnover: '',
+  },
+  eventLabels: {
+    goal: 'Goal',
+    own_goal: 'Own Goal',
+    penalty: 'Penalty',
+    missed_penalty: 'Missed Penalty',
+    yellow_card: 'Yellow Card',
+    red_card: 'Red Card',
+    subst: 'Substitution',
+    two_points: '',
+    three_points: '',
+    free_throw: '',
+    foul: '',
+    timeout: '',
+    turnover: '',
+  },
+  scoreLabel: 'Score',
+  periodLabel: 'Half',
+  periods: 2,
+}
+
+export const BASKETBALL_CONFIG: SportConfig = {
+  sport: 'basketball',
+  eventIcons: {
+    goal: '🏀',
+    own_goal: '🏀',
+    penalty: '🏀',
+    missed_penalty: '✕',
+    yellow_card: '🟨',
+    red_card: '🟥',
+    subst: '🔄',
+    two_points: '2️⃣',
+    three_points: '3️⃣',
+    free_throw: '1️⃣',
+    foul: '🚫',
+    timeout: '⏱️',
+    turnover: '↩️',
+  },
+  eventLabels: {
+    goal: 'Basket',
+    own_goal: 'Own Basket',
+    penalty: 'Penalty',
+    missed_penalty: 'Missed Penalty',
+    yellow_card: 'Yellow Card',
+    red_card: 'Red Card',
+    subst: 'Substitution',
+    two_points: '2 PTS',
+    three_points: '3 PTS',
+    free_throw: 'Free Throw',
+    foul: 'Foul',
+    timeout: 'Timeout',
+    turnover: 'Turnover',
+  },
+  scoreLabel: 'Puntos',
+  periodLabel: 'Quarter',
+  periods: 4,
+}
+
+export function getSportConfig(sport: Sport): SportConfig {
+  switch (sport) {
+    case 'basketball':
+      return BASKETBALL_CONFIG
+    case 'mma':
+      return FOOTBALL_CONFIG
+    default:
+      return FOOTBALL_CONFIG
+  }
 }

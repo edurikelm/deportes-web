@@ -18,8 +18,8 @@ export function LeagueBadge({ league, compact = false }: LeagueBadgeProps) {
         <Image
           src={league.logo}
           alt={league.name}
-          width={24}
-          height={24}
+          fill
+          sizes="24px"
           className="object-contain"
         />
       </div>
@@ -36,8 +36,8 @@ export function LeagueBadge({ league, compact = false }: LeagueBadgeProps) {
         <Image
           src={league.logo}
           alt={league.name}
-          width={24}
-          height={24}
+          fill
+          sizes="24px"
           className="object-contain"
         />
       </div>

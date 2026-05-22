@@ -3,6 +3,7 @@ import type { Match } from './types'
 export const MOCK_MATCHES: Match[] = [
   {
     id: '1',
+    sport: 'football',
     homeTeam: {
       id: '1',
       name: 'Arsenal FC',
@@ -65,6 +66,7 @@ export const MOCK_MATCHES: Match[] = [
   },
   {
     id: '2',
+    sport: 'football',
     homeTeam: {
       id: '3',
       name: 'Real Madrid',
@@ -114,6 +116,7 @@ export const MOCK_MATCHES: Match[] = [
   },
   {
     id: '3',
+    sport: 'football',
     homeTeam: {
       id: '5',
       name: 'Bayern Munich',
@@ -143,6 +146,7 @@ export const MOCK_MATCHES: Match[] = [
   },
   {
     id: '4',
+    sport: 'football',
     homeTeam: {
       id: '7',
       name: 'AC Milan',
@@ -190,6 +194,7 @@ export const MOCK_MATCHES: Match[] = [
   },
   {
     id: '5',
+    sport: 'football',
     homeTeam: {
       id: '9',
       name: 'Manchester City',
@@ -220,6 +225,7 @@ export const MOCK_MATCHES: Match[] = [
   },
   {
     id: '6',
+    sport: 'football',
     homeTeam: {
       id: '11',
       name: 'Paris Saint-Germain',
@@ -275,6 +281,190 @@ export const MOCK_MATCHES: Match[] = [
     ],
     streamLinks: [
       { type: 'tv', name: 'Canal+' },
+    ],
+  },
+  {
+    id: 'b1',
+    sport: 'basketball',
+    homeTeam: {
+      id: 'b-home1',
+      name: 'Los Angeles Lakers',
+      shortName: 'LAL',
+      logo: 'https://cdn.nba.com/logos/nba/1610612747/global/L/logo.svg',
+    },
+    awayTeam: {
+      id: 'b-away1',
+      name: 'Boston Celtics',
+      shortName: 'BOS',
+      logo: 'https://cdn.nba.com/logos/nba/1610612738/global/L/logo.svg',
+    },
+    status: 'live',
+    startTime: '2026-04-28T19:30:00Z',
+    minute: 3,
+    league: {
+      id: 'b1',
+      name: 'NBA',
+      country: 'USA',
+      logo: 'https://cdn.nba.com/logos/nba/primary/L/logo.svg',
+      color: '#1D428A',
+    },
+    score: {
+      home: 15,
+      away: 12,
+    },
+    events: [
+      {
+        type: 'goal',
+        minute: 1,
+        player: 'LeBron James',
+        team: 'home',
+        comment: '3pts',
+      },
+      {
+        type: 'goal',
+        minute: 2,
+        player: 'Jayson Tatum',
+        team: 'away',
+        comment: '2pts',
+      },
+      {
+        type: 'goal',
+        minute: 3,
+        player: 'Anthony Davis',
+        team: 'home',
+        comment: '3pts',
+      },
+    ],
+    streamLinks: [
+      { type: 'tv', name: 'ESPN' },
+    ],
+  },
+  {
+    id: 'b2',
+    sport: 'basketball',
+    homeTeam: {
+      id: 'b-home2',
+      name: 'Golden State Warriors',
+      shortName: 'GSW',
+      logo: 'https://cdn.nba.com/logos/nba/1610612744/global/L/logo.svg',
+    },
+    awayTeam: {
+      id: 'b-away2',
+      name: 'Miami Heat',
+      shortName: 'MIA',
+      logo: 'https://cdn.nba.com/logos/nba/1610612748/global/L/logo.svg',
+    },
+    status: 'upcoming',
+    startTime: '2026-04-29T00:00:00Z',
+    league: {
+      id: 'b1',
+      name: 'NBA',
+      country: 'USA',
+      logo: 'https://cdn.nba.com/logos/nba/primary/L/logo.svg',
+      color: '#1D428A',
+    },
+    score: undefined,
+    events: [],
+    streamLinks: [
+      { type: 'tv', name: 'TNT' },
+    ],
+  },
+  {
+    id: 'b3',
+    sport: 'basketball',
+    homeTeam: {
+      id: 'b-home3',
+      name: 'Brooklyn Nets',
+      shortName: 'BKN',
+      logo: 'https://cdn.nba.com/logos/nba/1610612751/global/L/logo.svg',
+    },
+    awayTeam: {
+      id: 'b-away3',
+      name: 'Philadelphia 76ers',
+      shortName: 'PHI',
+      logo: 'https://cdn.nba.com/logos/nba/1610612755/global/L/logo.svg',
+    },
+    status: 'finished',
+    startTime: '2026-04-28T02:00:00Z',
+    minute: 48,
+    league: {
+      id: 'b1',
+      name: 'NBA',
+      country: 'USA',
+      logo: 'https://cdn.nba.com/logos/nba/primary/L/logo.svg',
+      color: '#1D428A',
+    },
+    score: {
+      home: 112,
+      away: 118,
+    },
+    events: [
+      {
+        type: 'goal',
+        minute: 10,
+        player: 'DeMar DeRozan',
+        team: 'home',
+        comment: '3pts',
+      },
+      {
+        type: 'goal',
+        minute: 20,
+        player: 'Giannis Antetokounmpo',
+        team: 'away',
+        comment: '3pts',
+      },
+    ],
+    streamLinks: [
+      { type: 'tv', name: 'NBA League Pass' },
+    ],
+  },
+  {
+    id: 'b4',
+    sport: 'basketball',
+    homeTeam: {
+      id: 'b-home4',
+      name: 'Chicago Bulls',
+      shortName: 'CHI',
+      logo: 'https://cdn.nba.com/logos/nba/1610612741/global/L/logo.svg',
+    },
+    awayTeam: {
+      id: 'b-away4',
+      name: 'Milwaukee Bucks',
+      shortName: 'MIL',
+      logo: 'https://cdn.nba.com/logos/nba/1610612749/global/L/logo.svg',
+    },
+    status: 'live',
+    startTime: '2026-04-28T21:00:00Z',
+    minute: 8,
+    league: {
+      id: 'b1',
+      name: 'NBA',
+      country: 'USA',
+      logo: 'https://cdn.nba.com/logos/nba/primary/L/logo.svg',
+      color: '#1D428A',
+    },
+    score: {
+      home: 28,
+      away: 24,
+    },
+    events: [
+      {
+        type: 'goal',
+        minute: 4,
+        player: 'Stephen Curry',
+        team: 'home',
+        comment: '3pts',
+      },
+      {
+        type: 'goal',
+        minute: 5,
+        player: 'Jimmy Butler',
+        team: 'away',
+        comment: '2pts',
+      },
+    ],
+    streamLinks: [
+      { type: 'tv', name: 'ESPN' },
     ],
   },
 ]

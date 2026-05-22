@@ -129,8 +129,8 @@ export function SearchBar({ onSearch, selectedLeagueId, leagues, matches }: Sear
                     <Image
                       src={match.homeTeam.logo}
                       alt={match.homeTeam.name}
-                      width={32}
-                      height={32}
+                      fill
+                      sizes="32px"
                       className="object-contain p-0.5"
                     />
                   </div>
@@ -153,7 +153,9 @@ export function SearchBar({ onSearch, selectedLeagueId, leagues, matches }: Sear
             </svg>
             {selectedLeague ? (
               <div className="flex items-center gap-2">
-                <Image src={selectedLeague.logo} alt={selectedLeague.name} width={16} height={16} className="object-contain" />
+                <div className="relative h-4 w-4 overflow-hidden rounded">
+                  <Image src={selectedLeague.logo} alt={selectedLeague.name} fill sizes="16px" className="object-contain" />
+                </div>
                 <span className="hidden sm:inline">{selectedLeague.name}</span>
               </div>
             ) : (
@@ -176,7 +178,7 @@ export function SearchBar({ onSearch, selectedLeagueId, leagues, matches }: Sear
                   className="flex w-full items-center gap-2 border-b border-[#262626] px-4 py-2.5 last:border-0 hover:bg-[#1a1a1a]"
                 >
                   <div className="relative h-5 w-5 overflow-hidden rounded">
-                    <Image src={league.logo} alt={league.name} width={20} height={20} className="object-contain" />
+                    <Image src={league.logo} alt={league.name} fill sizes="20px" className="object-contain" />
                   </div>
                   <span className="text-sm text-white">{league.name}</span>
                 </button>

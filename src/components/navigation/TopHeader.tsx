@@ -4,11 +4,24 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 
+const SPORTS = [
+  { href: '/', label: 'Football' },
+  { href: '/basketball', label: 'Básquet' },
+  { href: '/mma', label: 'MMA' },
+]
+
 const NAV_ITEMS = [
   { href: '/', label: 'Home' },
   { href: '/live', label: 'Live' },
   { href: '/search', label: 'Search' },
 ]
+
+function isSportActive(pathname: string, href: string): boolean {
+  if (href === '/') {
+    return pathname === '/' || pathname.startsWith('/football') || pathname === ''
+  }
+  return pathname.startsWith(href)
+}
 
 export function TopHeader() {
   const pathname = usePathname()
@@ -23,6 +36,25 @@ export function TopHeader() {
               Live<span className="text-[#ef4444]">Scores</span>
             </span>
           </Link>
+
+          <div className="flex items-center gap-2">
+            {SPORTS.map((sport) => {
+              const isActive = isSportActive(pathname, sport.href)
+              return (
+                <Link
+                  key={sport.href}
+                  href={sport.href}
+                  className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+                    isActive
+                      ? 'bg-white text-black'
+                      : 'bg-[#1a1a1a] text-[#a1a1a1] hover:bg-[#262626] hover:text-white'
+                  }`}
+                >
+                  {sport.label}
+                </Link>
+              )
+            })}
+          </div>
 
           <div className="flex items-center gap-1">
             {NAV_ITEMS.map((item) => {

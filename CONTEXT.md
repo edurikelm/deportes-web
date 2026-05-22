@@ -3,7 +3,7 @@
 ## Domain Terms
 
 ### Match (Partido)
-Evento deportivo entre dos equipos. Tiene estados: `upcoming` (por jugar), `live` (en curso), `finished` (finalizado). Contiene score, timeline de eventos, y links de streaming.
+Evento deportivo entre dos equipos. Tiene estados: `upcoming` (por jugar), `live` (en curso), `finished` (finalizado). Contiene score, timeline de eventos, y links de streaming. Cada match tiene un `sport` explícito: `'football' | 'basketball' | 'mma'`.
 
 ### Team (Equipo)
 Entidad con `id`, `name`, `logo`. No se persiste en DB — se consume de API-Football en tiempo real. `shortName` existe en el modelo para uso en mobile/espacios reducidos.
@@ -12,7 +12,7 @@ Entidad con `id`, `name`, `logo`. No se persiste en DB — se consume de API-Foo
 Competencia footballística (Premier League, La Liga, etc). Tiene `id`, `name`, `country`, `logo`. Cada league tiene un color de acento para identidad visual.
 
 ### MatchEvent (Evento de Partido)
-Gol, tarjeta amarilla/roja, penal, sustitución. Tipo, minuto, jugador, equipo. No todos los partidos tienen eventos — campo opcional.
+Gol, tarjeta amarilla/roja, penal, sustitución para fútbol. Para otros deportes, campos opcionales genéricos (`extra?: Record<string, unknown>`) permiten flexibilidad. Tipo, minuto, jugador, equipo. No todos los partidos tienen eventos — campo opcional.
 
 ### StreamLink (Link de Streaming)
 Canal de TV o plataforma de streaming donde transmite el partido. Tipo: `tv` | `stream`. Nombre: "ESPN", "Star+", "Canal+".
@@ -31,8 +31,18 @@ Vista dedicada a partidos en vivo (status=live). Auto-refresh cada 30s.
 - Favoritos (no se persisten, no se implementan en v1)
 - Autenticación / usuarios
 - Base de datos (Supabase no se usa en v1)
-- Otros deportes (solo fútbol)
 - Notificaciones push
+
+## Architecture — Multi-Sport
+
+### Sport
+Campo explícito en Match: `'football' | 'basketball' | 'mma'`. Cada deporte tiene su propia página (`/`, `/basketball`, `/mma`) con pestañas de estado.
+
+### API Adapters
+Servicios separados en `/lib/api/`: `football.ts`, `basketball.ts`, `mma.ts`. Un adaptador unificado normaliza responses al tipo interno `Match`.
+
+### Components
+Componentes compartidos (`MatchCard`, `MatchList`, etc.) con props de configuración por deporte (`sportConfig`). La estructura es común, el contenido varía.
 
 ## Technical Decisions
 

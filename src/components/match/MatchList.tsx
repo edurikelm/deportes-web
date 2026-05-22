@@ -1,13 +1,16 @@
 'use client'
 
-import type { Match } from '@/lib/types'
+import type { Match, SportConfig } from '@/lib/types'
+import { getSportConfig } from '@/lib/types'
 import { MatchCard } from './MatchCard'
 
 interface MatchListProps {
   matches: Match[]
+  sportConfig?: SportConfig
 }
 
-export function MatchList({ matches }: MatchListProps) {
+export function MatchList({ matches, sportConfig }: MatchListProps) {
+  const effectiveConfig = sportConfig || getSportConfig(matches[0]?.sport || 'football')
   const groupedMatches = matches.reduce((acc, match) => {
     const leagueId = match.league.id
     if (!acc[leagueId]) {
@@ -54,7 +57,7 @@ export function MatchList({ matches }: MatchListProps) {
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {leagueMatches.map((match) => (
-              <MatchCard key={match.id} match={match} />
+              <MatchCard key={match.id} match={match} sportConfig={effectiveConfig} />
             ))}
           </div>
         </div>

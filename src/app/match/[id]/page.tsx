@@ -154,8 +154,8 @@ export default function MatchDetailPage() {
                 <Image
                   src={match.league.logo}
                   alt={match.league.name}
-                  width={24}
-                  height={24}
+                  fill
+                  sizes="24px"
                   className="object-contain"
                 />
               </div>

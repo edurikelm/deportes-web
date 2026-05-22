@@ -40,8 +40,8 @@ export function TeamLogo({ team, size = 'md' }: TeamLogoProps) {
       <Image
         src={team.logo}
         alt={team.name}
-        width={sizes[size].image}
-        height={sizes[size].image}
+        fill
+        sizes={`${sizes[size].image}px`}
         className="object-contain p-1"
         onError={() => setHasError(true)}
       />

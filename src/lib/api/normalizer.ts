@@ -1,7 +1,7 @@
-import type { Match, MatchEvent, StreamLink } from '@/lib/types'
+import type { Match, MatchEvent, Sport, StreamLink } from '@/lib/types'
 import type { ApiFootballMatch } from './types'
 
-export function normalizeMatch(raw: ApiFootballMatch): Match {
+export function normalizeMatch(raw: ApiFootballMatch, sport: Sport = 'football'): Match {
   let status = mapStatus(raw.status.code)
 
   const startTime = new Date(raw.startTime)
@@ -18,6 +18,7 @@ export function normalizeMatch(raw: ApiFootballMatch): Match {
 
   return {
     id: String(raw.id),
+    sport,
     homeTeam: {
       id: String(raw.homeTeam.id),
       name: raw.homeTeam.name,

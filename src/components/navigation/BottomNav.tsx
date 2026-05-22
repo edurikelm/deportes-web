@@ -23,15 +23,31 @@ const NAV_ITEMS = [
     ),
   },
   {
-    href: '/search',
-    label: 'Search',
+    href: '/basketball',
+    label: 'Básquet',
     icon: (
       <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+      </svg>
+    ),
+  },
+  {
+    href: '/mma',
+    label: 'MMA',
+    icon: (
+      <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
       </svg>
     ),
   },
 ]
+
+function isSportActive(pathname: string, href: string): boolean {
+  if (href === '/') {
+    return pathname === '/' || pathname.startsWith('/football') || pathname === ''
+  }
+  return pathname.startsWith(href)
+}
 
 export function BottomNav() {
   const pathname = usePathname()
@@ -40,7 +56,7 @@ export function BottomNav() {
     <nav className="fixed bottom-0 left-0 right-0 border-t border-[#1a1a1a] bg-[#0a0a0a] md:hidden">
       <div className="mx-auto flex max-w-7xl">
         {NAV_ITEMS.map((item) => {
-          const isActive = pathname === item.href
+          const isActive = isSportActive(pathname, item.href)
           return (
             <Link
               key={item.href}

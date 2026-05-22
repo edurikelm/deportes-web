@@ -1,16 +1,19 @@
 'use client'
 
 import Image from 'next/image'
-import type { Match } from '@/lib/types'
+import type { Match, SportConfig } from '@/lib/types'
+import { FOOTBALL_CONFIG } from '@/lib/types'
 
 interface ScoreDisplayProps {
   match: Match
+  sportConfig?: SportConfig
 }
 
-export function ScoreDisplay({ match }: ScoreDisplayProps) {
+export function ScoreDisplay({ match, sportConfig = FOOTBALL_CONFIG }: ScoreDisplayProps) {
   const isLive = match.status === 'live'
   const isFinished = match.status === 'finished'
   const isUpcoming = match.status === 'upcoming'
+  const isBasketball = sportConfig.sport === 'basketball'
 
   return (
     <div className="flex flex-col items-center">
@@ -20,8 +23,8 @@ export function ScoreDisplay({ match }: ScoreDisplayProps) {
             <Image
               src={match.homeTeam.logo}
               alt={match.homeTeam.name}
-              width={64}
-              height={64}
+              fill
+              sizes="64px"
               className="object-contain p-1"
             />
           </div>
@@ -56,11 +59,21 @@ export function ScoreDisplay({ match }: ScoreDisplayProps) {
                 </span>
               </div>
 
-              {match.score?.ht && (
+              {match.score?.ht && !isBasketball && (
                 <div className="mt-2 flex items-center gap-2">
                   <span className="rounded bg-[#262626] px-2 py-0.5 text-xs text-[#a1a1a1]">
                     HT {match.score.ht.home} - {match.score.ht.away}
                   </span>
+                </div>
+              )}
+
+              {isBasketball && match.score?.qt && (
+                <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
+                  {match.score.qt.map((q, i) => (
+                    <span key={i} className="rounded bg-[#262626] px-2 py-0.5 text-xs text-[#a1a1a1]">
+                      Q{i + 1} {q}
+                    </span>
+                  ))}
                 </div>
               )}
 
@@ -82,8 +95,8 @@ export function ScoreDisplay({ match }: ScoreDisplayProps) {
             <Image
               src={match.awayTeam.logo}
               alt={match.awayTeam.name}
-              width={64}
-              height={64}
+              fill
+              sizes="64px"
               className="object-contain p-1"
             />
           </div>
