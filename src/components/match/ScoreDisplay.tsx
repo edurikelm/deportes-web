@@ -67,11 +67,11 @@ export function ScoreDisplay({ match, sportConfig = FOOTBALL_CONFIG }: ScoreDisp
                 </div>
               )}
 
-              {isBasketball && match.score?.qt && (
+              {isBasketball && match.score?.quarters && (
                 <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
-                  {match.score.qt.map((q, i) => (
+                  {match.score.quarters.map((q, i) => (
                     <span key={i} className="rounded bg-[#262626] px-2 py-0.5 text-xs text-[#a1a1a1]">
-                      Q{i + 1} {q}
+                      Q{i + 1} {q.home}-{q.away}
                     </span>
                   ))}
                 </div>

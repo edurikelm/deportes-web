@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { isSportActive } from '@/lib/utils'
 
 const NAV_ITEMS = [
   {
@@ -41,13 +42,6 @@ const NAV_ITEMS = [
     ),
   },
 ]
-
-function isSportActive(pathname: string, href: string): boolean {
-  if (href === '/') {
-    return pathname === '/' || pathname.startsWith('/football') || pathname === ''
-  }
-  return pathname.startsWith(href)
-}
 
 export function BottomNav() {
   const pathname = usePathname()

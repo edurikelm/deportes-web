@@ -1,12 +1,8 @@
-const API_KEY = process.env.API_FOOTBALL_API_KEY
+import type { SportDataAdapter } from './sportDataAdapter'
+import type { Match } from '@/lib/types'
+import { fetchWithCache, clearCache as sharedClearCache } from './client'
+
 const BASE_URL = 'https://v2.nba.api-sports.io'
-
-const cache = new Map<string, { data: unknown; timestamp: number }>()
-
-interface CacheEntry {
-  data: unknown
-  timestamp: number
-}
 
 interface NbaApiResponse {
   response: NbaFixture[]
@@ -127,96 +123,14 @@ export interface NormalizedBasketballMatch {
   }>
 }
 
-async function fetchWithCache<T>(
-  url: string,
-  options: RequestInit = {},
-  ttlSeconds = 60
-): Promise<{ data: T; cached: boolean; cacheAge: number }> {
-  const cacheKey = url
-  const now = Date.now()
-  const headers = options.headers as Record<string, string> | undefined
-  const noCache = headers?.['x-no-cache'] === 'true'
-
-  if (!noCache) {
-    const cached = cache.get(cacheKey) as CacheEntry | undefined
-    if (cached && now - cached.timestamp < ttlSeconds * 1000) {
-      return { data: cached.data as T, cached: true, cacheAge: Math.floor((now - cached.timestamp) / 1000) }
-    }
-  }
-
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      'x-apisports-key': API_KEY || '',
-      ...options.headers,
-    },
-  })
-
-  if (!response.ok) {
-    if (response.status === 429 && cache.has(cacheKey)) {
-      const cached = cache.get(cacheKey) as CacheEntry
-      return { data: cached.data as T, cached: true, cacheAge: Math.floor((Date.now() - cached.timestamp) / 1000) }
-    }
-    throw new Error(`NBA API Error: ${response.status} ${response.statusText}`)
-  }
-
-  const data = await response.json()
-  if (!noCache) {
-    cache.set(cacheKey, { data, timestamp: now })
-  }
-
-  return { data: data as T, cached: false, cacheAge: 0 }
-}
-
 export function clearCache() {
-  cache.clear()
-}
-
-function mapNbaStatus(short: string): 'upcoming' | 'live' | 'finished' {
-  const liveStatuses = ['1Q', '2Q', '3Q', '4Q', 'OT', 'inprogress', 'halftime']
-  const finishedStatuses = ['FT', 'AET', 'finished', 'canceled', 'postponed']
-
-  if (liveStatuses.includes(short)) return 'live'
-  if (finishedStatuses.includes(short)) return 'finished'
-  return 'upcoming'
+  sharedClearCache()
 }
 
 function extractMinute(description: string): number | undefined {
   if (!description) return undefined
   const match = description.match(/(\d+)/)
   return match ? parseInt(match[1], 10) : undefined
-}
-
-function mapBasketballEventType(type: string): string {
-  const map: Record<string, string> = {
-    '3points': 'triple',
-    '3points Made': 'triple',
-    '2points': 'two_pointer',
-    '2points Made': 'two_pointer',
-    'freethrow': 'freethrow',
-    'Free Throw': 'freethrow',
-    'rebounds': 'rebound',
-    'Rebound': 'rebound',
-    'assists': 'assist',
-    'Assist': 'assist',
-    'steals': 'steal',
-    'Steal': 'steal',
-    'blocks': 'block',
-    'Block': 'block',
-    'turnovers': 'turnover',
-    'Turnover': 'turnover',
-    'fouls': 'foul',
-    'Foul': 'foul',
-    'substitution': 'substitution',
-    'Substitution': 'substitution',
-    'timeout': 'timeout',
-    'Timeout': 'timeout',
-    'start': 'start',
-    'end': 'end',
-    'jump ball': 'jump_ball',
-    'Jump Ball': 'jump_ball',
-  }
-  return map[type] || type
 }
 
 export function normalizeBasketballMatch(raw: NbaFixture): NormalizedBasketballMatch {
@@ -283,10 +197,29 @@ export async function fetchNbaFixtures(date: string, isLive = false): Promise<{
   const { data, cached, cacheAge } = await fetchWithCache<NbaApiResponse>(
     url,
     { headers: { 'x-no-cache': isLive ? 'true' : 'false' } },
-    isLive ? 10 : 60
+    isLive ? 10 : 60,
+    'NBA API'
   )
 
   const matches = (data.response || []).map(normalizeBasketballMatch)
 
   return { matches, cached, cacheAge }
+}
+
+export class BasketballAdapter implements SportDataAdapter {
+  async fetchFixtures(date: string, isLive: boolean) {
+    const apiKey = process.env.API_FOOTBALL_API_KEY
+
+    if (!apiKey) {
+      const { MOCK_BASKETBALL_MATCHES } = await import('@/lib/mock-data')
+      let matches = MOCK_BASKETBALL_MATCHES as unknown as Match[]
+      if (isLive) {
+        matches = matches.filter(m => m.status === 'live')
+      }
+      return { matches, cached: false, cacheAge: 0 }
+    }
+
+    const result = await fetchNbaFixtures(date, isLive)
+    return { ...result, matches: result.matches as unknown as Match[] }
+  }
 }

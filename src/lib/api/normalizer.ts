@@ -46,7 +46,7 @@ export function normalizeMatch(raw: ApiFootballMatch, sport: Sport = 'football')
       away: raw.score.away ?? 0,
       ht: raw.score.ht,
     } : undefined,
-    events: normalizeEvents(raw.events || []),
+    events: normalizeEvents(raw.events || [], raw.homeTeam.id, raw.awayTeam.id),
     streamLinks: normalizeStreamLinks(raw.streamLinks || []),
   }
 }
@@ -78,12 +78,12 @@ function extractMinute(description: string): number | undefined {
   return match ? parseInt(match[1], 10) : undefined
 }
 
-function normalizeEvents(events: ApiFootballMatch['events']): MatchEvent[] {
+function normalizeEvents(events: ApiFootballMatch['events'], homeTeamId?: number, awayTeamId?: number): MatchEvent[] {
   return (events || []).map((e) => ({
     type: mapEventType(e.type),
     minute: e.time,
     player: e.player?.name,
-    team: e.team?.id ? 'home' : 'away',
+    team: e.team?.id === awayTeamId ? 'away' : 'home',
     assist: e.assist?.name,
     comment: e.comment,
   }))

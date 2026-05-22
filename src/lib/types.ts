@@ -16,6 +16,22 @@ export type MatchEventType =
   | 'foul'
   | 'timeout'
   | 'turnover'
+  | 'triple'
+  | 'two_pointer'
+  | 'freethrow'
+  | 'assist'
+  | 'rebound'
+  | 'block'
+  | 'steal'
+  | 'start'
+  | 'end'
+  | 'jump_ball'
+  | 'substitution'
+  | 'knockout'
+  | 'submission'
+  | 'tko'
+  | 'decision'
+  | 'round'
 
 export interface SportConfig {
   sport: Sport
@@ -50,7 +66,7 @@ export interface Score {
     home: number
     away: number
   }
-  qt?: number[]
+  quarters?: Array<{ home: number; away: number }>
 }
 
 export interface MatchEvent {
@@ -118,6 +134,22 @@ export const FOOTBALL_CONFIG: SportConfig = {
     foul: '',
     timeout: '',
     turnover: '',
+    triple: '',
+    two_pointer: '',
+    freethrow: '',
+    assist: '',
+    rebound: '',
+    block: '',
+    steal: '',
+    start: '',
+    end: '',
+    jump_ball: '',
+    substitution: '',
+    knockout: '',
+    submission: '',
+    tko: '',
+    decision: '',
+    round: '',
   },
   eventLabels: {
     goal: 'Goal',
@@ -133,6 +165,22 @@ export const FOOTBALL_CONFIG: SportConfig = {
     foul: '',
     timeout: '',
     turnover: '',
+    triple: '',
+    two_pointer: '',
+    freethrow: '',
+    assist: '',
+    rebound: '',
+    block: '',
+    steal: '',
+    start: '',
+    end: '',
+    jump_ball: '',
+    substitution: '',
+    knockout: '',
+    submission: '',
+    tko: '',
+    decision: '',
+    round: '',
   },
   scoreLabel: 'Score',
   periodLabel: 'Half',
@@ -155,6 +203,22 @@ export const BASKETBALL_CONFIG: SportConfig = {
     foul: '🚫',
     timeout: '⏱️',
     turnover: '↩️',
+    triple: '3️⃣',
+    two_pointer: '2️⃣',
+    freethrow: '1️⃣',
+    assist: '🎯',
+    rebound: '📊',
+    block: '🚧',
+    steal: '🫳',
+    start: '▶️',
+    end: '⏹️',
+    jump_ball: '🏀',
+    substitution: '🔄',
+    knockout: '',
+    submission: '',
+    tko: '',
+    decision: '',
+    round: '',
   },
   eventLabels: {
     goal: 'Basket',
@@ -170,10 +234,95 @@ export const BASKETBALL_CONFIG: SportConfig = {
     foul: 'Foul',
     timeout: 'Timeout',
     turnover: 'Turnover',
+    triple: '3 PTS',
+    two_pointer: '2 PTS',
+    freethrow: 'Free Throw',
+    assist: 'Assist',
+    rebound: 'Rebound',
+    block: 'Block',
+    steal: 'Steal',
+    start: 'Start',
+    end: 'End',
+    jump_ball: 'Jump Ball',
+    substitution: 'Substitution',
+    knockout: '',
+    submission: '',
+    tko: '',
+    decision: '',
+    round: '',
   },
   scoreLabel: 'Puntos',
   periodLabel: 'Quarter',
   periods: 4,
+}
+
+export const MMA_CONFIG: SportConfig = {
+  sport: 'mma',
+  eventIcons: {
+    goal: '',
+    own_goal: '',
+    penalty: '',
+    missed_penalty: '',
+    yellow_card: '',
+    red_card: '',
+    subst: '',
+    two_points: '',
+    three_points: '',
+    free_throw: '',
+    foul: '',
+    timeout: '⏱️',
+    turnover: '',
+    triple: '',
+    two_pointer: '',
+    freethrow: '',
+    assist: '',
+    rebound: '',
+    block: '',
+    steal: '',
+    start: '▶️',
+    end: '⏹️',
+    jump_ball: '',
+    substitution: '',
+    knockout: '🥊',
+    submission: '🧎',
+    tko: '🥊',
+    decision: '⚖️',
+    round: '🔴',
+  },
+  eventLabels: {
+    goal: '',
+    own_goal: '',
+    penalty: '',
+    missed_penalty: '',
+    yellow_card: '',
+    red_card: '',
+    subst: '',
+    two_points: '',
+    three_points: '',
+    free_throw: '',
+    foul: '',
+    timeout: 'Timeout',
+    turnover: '',
+    triple: '',
+    two_pointer: '',
+    freethrow: '',
+    assist: '',
+    rebound: '',
+    block: '',
+    steal: '',
+    start: 'Fight Start',
+    end: 'Fight End',
+    jump_ball: '',
+    substitution: '',
+    knockout: 'Knockout',
+    submission: 'Submission',
+    tko: 'TKO',
+    decision: 'Decision',
+    round: 'Round',
+  },
+  scoreLabel: 'Result',
+  periodLabel: 'Round',
+  periods: 3,
 }
 
 export function getSportConfig(sport: Sport): SportConfig {
@@ -181,8 +330,11 @@ export function getSportConfig(sport: Sport): SportConfig {
     case 'basketball':
       return BASKETBALL_CONFIG
     case 'mma':
+      return MMA_CONFIG
+    case 'football':
       return FOOTBALL_CONFIG
     default:
-      return FOOTBALL_CONFIG
+      const _exhaustive: never = sport
+      return _exhaustive
   }
 }

@@ -22,6 +22,22 @@ const defaultEventIcons: Record<MatchEventType, { icon: string; color: string }>
   foul: { icon: '🚫', color: '#ef4444' },
   timeout: { icon: '⏱️', color: '#3b82f6' },
   turnover: { icon: '↩️', color: '#ef4444' },
+  triple: { icon: '3️⃣', color: '#22c55e' },
+  two_pointer: { icon: '2️⃣', color: '#22c55e' },
+  freethrow: { icon: '1️⃣', color: '#22c55e' },
+  assist: { icon: '🎯', color: '#3b82f6' },
+  rebound: { icon: '📊', color: '#3b82f6' },
+  block: { icon: '🚧', color: '#3b82f6' },
+  steal: { icon: '🫳', color: '#3b82f6' },
+  start: { icon: '▶️', color: '#22c55e' },
+  end: { icon: '⏹️', color: '#ef4444' },
+  jump_ball: { icon: '🏀', color: '#3b82f6' },
+  substitution: { icon: '🔄', color: '#3b82f6' },
+  knockout: { icon: '🥊', color: '#ef4444' },
+  submission: { icon: '🧎', color: '#ef4444' },
+  tko: { icon: '🥊', color: '#ef4444' },
+  decision: { icon: '⚖️', color: '#3b82f6' },
+  round: { icon: '🔴', color: '#3b82f6' },
 }
 
 function EventItem({ event, sportConfig }: { event: MatchEvent; sportConfig: SportConfig }) {

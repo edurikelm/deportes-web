@@ -8,10 +8,16 @@ interface UseMatchPollingOptions {
   enabled?: boolean
 }
 
+interface RateLimitInfo {
+  active: boolean
+  remainingSeconds: number
+}
+
 interface UseMatchPollingReturn {
   isPolling: boolean
   lastUpdated: Date | null
   error: string | null
+  rateLimitInfo: RateLimitInfo
 }
 
 export function useMatchPolling({
@@ -22,10 +28,12 @@ export function useMatchPolling({
   const [isPolling, setIsPolling] = useState(false)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [rateLimitInfo, setRateLimitInfo] = useState<RateLimitInfo>({ active: false, remainingSeconds: 0 })
 
   const onFetchRef = useRef(onFetch)
   const enabledRef = useRef(enabled)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  const rateLimitTimerRef = useRef<NodeJS.Timeout | null>(null)
   const isMountedRef = useRef(true)
 
   useEffect(() => {
@@ -50,6 +58,13 @@ export function useMatchPolling({
     }
   }
 
+  const clearRateLimitTimer = () => {
+    if (rateLimitTimerRef.current) {
+      clearInterval(rateLimitTimerRef.current)
+      rateLimitTimerRef.current = null
+    }
+  }
+
   useEffect(() => {
     if (!enabled) {
       clearTimer()
@@ -71,7 +86,22 @@ export function useMatchPolling({
         }
       } catch (err) {
         if (isMountedRef.current) {
-          setError(err instanceof Error ? err.message : 'Fetch failed')
+          const message = err instanceof Error ? err.message : 'Fetch failed'
+          setError(message)
+          if (message.includes('429') || message.includes('Too Many Requests')) {
+            setRateLimitInfo({ active: true, remainingSeconds: 120 })
+            clearRateLimitTimer()
+            rateLimitTimerRef.current = setInterval(() => {
+              setRateLimitInfo(prev => {
+                const next = prev.remainingSeconds - 1
+                if (next <= 0) {
+                  clearRateLimitTimer()
+                  return { active: false, remainingSeconds: 0 }
+                }
+                return { ...prev, remainingSeconds: next }
+              })
+            }, 1000)
+          }
         }
       }
     }
@@ -100,5 +130,5 @@ export function useMatchPolling({
     }
   }, [enabled, interval])
 
-  return { isPolling, lastUpdated, error }
+  return { isPolling, lastUpdated, error, rateLimitInfo }
 }

@@ -97,9 +97,9 @@ export function MatchCard({ match, sportConfig = FOOTBALL_CONFIG }: MatchCardPro
                     HT {match.score.ht.home}-{match.score.ht.away}
                   </span>
                 )}
-                {match.score.qt && sportConfig.sport === 'basketball' && (
+                {match.score.quarters && sportConfig.sport === 'basketball' && (
                   <span className="mt-1 text-xs text-[#666]">
-                    Q1-{match.score.qt[0]} Q2-{match.score.qt[1]} Q3-{match.score.qt[2]} Q4-{match.score.qt[3]}
+                    {match.score.quarters.map((q, i) => `Q${i + 1}-${q.home}/${q.away}`).join(' ')}
                   </span>
                 )}
                 {match.status === 'live' && match.minute && (

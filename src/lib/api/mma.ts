@@ -1,12 +1,8 @@
-const API_KEY = process.env.API_FOOTBALL_API_KEY
+import type { SportDataAdapter } from './sportDataAdapter'
+import type { Match } from '@/lib/types'
+import { fetchWithCache, clearCache as sharedClearCache } from './client'
+
 const BASE_URL = 'https://v1.mma.api-sports.io'
-
-const cache = new Map<string, { data: unknown; timestamp: number }>()
-
-interface CacheEntry {
-  data: unknown
-  timestamp: number
-}
 
 interface MmaApiResponse {
   response: MmaFixture[]
@@ -102,49 +98,8 @@ export interface NormalizedMmaMatch {
   }>
 }
 
-async function fetchWithCache<T>(
-  url: string,
-  options: RequestInit = {},
-  ttlSeconds = 60
-): Promise<{ data: T; cached: boolean; cacheAge: number }> {
-  const cacheKey = url
-  const now = Date.now()
-  const headers = options.headers as Record<string, string> | undefined
-  const noCache = headers?.['x-no-cache'] === 'true'
-
-  if (!noCache) {
-    const cached = cache.get(cacheKey) as CacheEntry | undefined
-    if (cached && now - cached.timestamp < ttlSeconds * 1000) {
-      return { data: cached.data as T, cached: true, cacheAge: Math.floor((now - cached.timestamp) / 1000) }
-    }
-  }
-
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      'x-apisports-key': API_KEY || '',
-      ...options.headers,
-    },
-  })
-
-  if (!response.ok) {
-    if (response.status === 429 && cache.has(cacheKey)) {
-      const cached = cache.get(cacheKey) as CacheEntry
-      return { data: cached.data as T, cached: true, cacheAge: Math.floor((Date.now() - cached.timestamp) / 1000) }
-    }
-    throw new Error(`MMA API Error: ${response.status} ${response.statusText}`)
-  }
-
-  const data = await response.json()
-  if (!noCache) {
-    cache.set(cacheKey, { data, timestamp: now })
-  }
-
-  return { data: data as T, cached: false, cacheAge: 0 }
-}
-
 export function clearCache() {
-  cache.clear()
+  sharedClearCache()
 }
 
 function mapMmaStatus(short: string): 'upcoming' | 'live' | 'finished' {
@@ -156,23 +111,18 @@ function mapMmaStatus(short: string): 'upcoming' | 'live' | 'finished' {
   return 'upcoming'
 }
 
-function mapMmaEventType(type: string): string {
+export function mapMmaEventType(type: string): string {
   const map: Record<string, string> = {
     'ko': 'knockout',
-    'Knockout': 'knockout',
     'knockout': 'knockout',
     'submission': 'submission',
-    'Submission': 'submission',
     'decision': 'decision',
-    'Decision': 'decision',
     'tko': 'tko',
-    'TKO': 'tko',
     'round': 'round',
-    ' Round ': 'round',
     'start': 'start',
     'end': 'end',
   }
-  return map[type] || type
+  return map[type.toLowerCase().trim()] || type
 }
 
 export function normalizeMmaMatch(raw: MmaFixture): NormalizedMmaMatch {
@@ -186,15 +136,7 @@ export function normalizeMmaMatch(raw: MmaFixture): NormalizedMmaMatch {
   const events: NormalizedMmaMatch['events'] = []
 
   if (raw.result?.method) {
-    const resultMethod = raw.result.method.toLowerCase()
-    let eventType = 'decision'
-    if (resultMethod.includes('ko') || resultMethod.includes('knockout')) {
-      eventType = 'knockout'
-    } else if (resultMethod.includes('submission')) {
-      eventType = 'submission'
-    } else if (resultMethod.includes('tko')) {
-      eventType = 'tko'
-    }
+    const eventType = mapMmaEventType(raw.result.method)
 
     events.push({
       id: `result-${raw.id}`,
@@ -248,10 +190,29 @@ export async function fetchMmaFixtures(date: string, isLive = false): Promise<{
   const { data, cached, cacheAge } = await fetchWithCache<MmaApiResponse>(
     url,
     { headers: { 'x-no-cache': isLive ? 'true' : 'false' } },
-    isLive ? 10 : 60
+    isLive ? 10 : 60,
+    'MMA API'
   )
 
   const matches = (data.response || []).map(normalizeMmaMatch)
 
   return { matches, cached, cacheAge }
+}
+
+export class MmaAdapter implements SportDataAdapter {
+  async fetchFixtures(date: string, isLive: boolean) {
+    const apiKey = process.env.API_FOOTBALL_API_KEY
+
+    if (!apiKey) {
+      const { MOCK_MMA_MATCHES } = await import('@/lib/mock-data')
+      let matches = MOCK_MMA_MATCHES as unknown as Match[]
+      if (isLive) {
+        matches = matches.filter(m => m.status === 'live')
+      }
+      return { matches, cached: false, cacheAge: 0 }
+    }
+
+    const result = await fetchMmaFixtures(date, isLive)
+    return { ...result, matches: result.matches as unknown as Match[] }
+  }
 }

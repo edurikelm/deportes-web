@@ -10,7 +10,8 @@ interface CacheEntry {
 export async function fetchWithCache<T>(
   url: string,
   options: RequestInit = {},
-  ttlSeconds = 60
+  ttlSeconds = 60,
+  serviceName = 'API'
 ): Promise<{ data: T; cached: boolean; cacheAge: number }> {
   const cacheKey = url
   const now = Date.now()
@@ -37,7 +38,7 @@ export async function fetchWithCache<T>(
       const cached = cache.get(cacheKey) as CacheEntry
       return { data: cached.data as T, cached: true, cacheAge: Math.floor((Date.now() - cached.timestamp) / 1000) }
     }
-    throw new Error(`API Error: ${response.status} ${response.statusText}`)
+    throw new Error(`${serviceName} Error: ${response.status} ${response.statusText}`)
   }
 
   const data = await response.json()

@@ -7,18 +7,10 @@ import type { Match, League } from '@/lib/types'
 type DateTab = 'yesterday' | 'today' | 'tomorrow'
 
 interface SearchBarProps {
-  onSearch: (query: string, date: string, leagueId?: string) => void
+  onSearch: (query: string, leagueId?: string) => void
   selectedLeagueId?: string
   leagues: League[]
   matches: Match[]
-}
-
-function getDateString(tab: DateTab): string {
-  const today = new Date()
-  const offset = tab === 'yesterday' ? -1 : tab === 'tomorrow' ? 1 : 0
-  const date = new Date(today)
-  date.setDate(date.getDate() + offset)
-  return date.toISOString().split('T')[0]
 }
 
 export function SearchBar({ onSearch, selectedLeagueId, leagues, matches }: SearchBarProps) {
@@ -55,8 +47,8 @@ export function SearchBar({ onSearch, selectedLeagueId, leagues, matches }: Sear
   }, [debouncedQuery, matches])
 
   useEffect(() => {
-    onSearch(debouncedQuery, customDate || getDateString(dateTab), leagueFilter || undefined)
-  }, [debouncedQuery, dateTab, customDate, leagueFilter, onSearch])
+    onSearch(debouncedQuery, leagueFilter || undefined)
+  }, [debouncedQuery, leagueFilter, onSearch])
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -194,7 +186,7 @@ export function SearchBar({ onSearch, selectedLeagueId, leagues, matches }: Sear
             <button
               key={tab}
               onClick={() => handleTabClick(tab)}
-              className={`flex-shrink-0 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+              className={`shrink-0 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
                 dateTab === tab && !customDate
                   ? 'bg-white text-black'
                   : 'bg-transparent text-[#a1a1a1] hover:bg-[#1a1a1a]'
@@ -205,7 +197,7 @@ export function SearchBar({ onSearch, selectedLeagueId, leagues, matches }: Sear
           ))}
           <button
             onClick={() => setShowDatePicker(!showDatePicker)}
-            className={`flex-shrink-0 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+            className={`shrink-0 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
               customDate
                 ? 'bg-white text-black'
                 : 'bg-transparent text-[#a1a1a1] hover:bg-[#1a1a1a]'

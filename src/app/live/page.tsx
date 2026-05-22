@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import type { Match } from '@/lib/types'
 import { MatchList } from '@/components/match/MatchList'
+import { RateLimitState } from '@/components/match/RateLimitState'
 import { useMatchPolling } from '@/hooks/useMatchPolling'
 
 interface MatchesResponse {
@@ -51,7 +52,7 @@ export default function LivePage() {
     }
   }, [])
 
-  const { isPolling, lastUpdated, error: pollingError } = useMatchPolling({
+  const { isPolling, lastUpdated, error: pollingError, rateLimitInfo } = useMatchPolling({
     onFetch: fetchMatches,
     interval: 30000,
     enabled: true,
@@ -134,6 +135,12 @@ export default function LivePage() {
       {pollingError && (
         <div className="mb-4 rounded-lg bg-red-950/50 border border-red-900 px-4 py-2 text-sm text-red-400">
           {pollingError}
+        </div>
+      )}
+
+      {rateLimitInfo.active && (
+        <div className="mb-4">
+          <RateLimitState nextRetryInSeconds={rateLimitInfo.remainingSeconds} />
         </div>
       )}
 

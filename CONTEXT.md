@@ -36,19 +36,26 @@ Vista dedicada a partidos en vivo (status=live). Auto-refresh cada 30s.
 ## Architecture — Multi-Sport
 
 ### Sport
-Campo explícito en Match: `'football' | 'basketball' | 'mma'`. Cada deporte tiene su propia página (`/`, `/basketball`, `/mma`) con pestañas de estado.
+Campo explícito en Match: `'football' | 'basketball' | 'mma'`. Cada deporte se resuelve por URL (`/`, `/basketball`, `/mma`) y se pasa como parámetro a módulos compartidos.
 
-### API Adapters
-Servicios separados en `/lib/api/`: `football.ts`, `basketball.ts`, `mma.ts`. Un adaptador unificado normaliza responses al tipo interno `Match`.
+### SportPage
+Módulo de página único parametrizado por `Sport`. Unifica tabs, polling, skeleton, y búsqueda que antes estaban duplicados 3x. Cada ruta es un wrapper fino que pasa el identificador de deporte.
+
+### SportDataAdapter
+Interfaz que abstrae el fetching de partidos por deporte: `fetchFixtures(date, isLive) => Promise<Match[]>`. Cada deporte implementa su adapter (football → API-Football v3, basketball → NBA API, MMA → MMA API). La API route delega al adapter según `?sport=` — un solo endpoint en vez de tres.
+
+### Cache compartido
+`fetchWithCache` vive en un módulo único. Los adapters lo importan con un `serviceName` para diferenciar logs. TTL: live=10s, normal=60s, eventos=120s. Fallback a cache stale en 429.
 
 ### Components
 Componentes compartidos (`MatchCard`, `MatchList`, etc.) con props de configuración por deporte (`sportConfig`). La estructura es común, el contenido varía.
 
 ## Technical Decisions
 
-- **API Proxy:** Next.js API Routes como proxy de API-Football (key oculta)
-- **Cache:** stale-while-revalidate por status (live:60s, upcoming:300s, finished:900s)
-- **Shape normalization:** API-Football raw → internal types (frontend no conoce la API externa)
-- **Polling:** 30s en vistas live, solo cuando tab está visible (Page Visibility API)
-- **Error handling:** Retry con backoff exponencial (30s → 60s → 120s) para rate limits
+- **API Proxy:** Next.js API Routes como proxy de APIs externas (key oculta en servidor)
+- **Cache:** In-memory `Map<string, CacheEntry>` compartido entre adapters, TTL por status
+- **Shape normalization:** Cada adapter normaliza raw API → internal `Match` (frontend no conoce la API externa)
+- **Polling:** 30s en vistas live, pausa en upcoming tab, pausa cuando tab oculta (Page Visibility API), no si hay error anterior pendiente
+- **Error handling:** 429 → retorna cache stale si existe; si no, error que se propaga a la UI
+- **Página unificada por parámetro:** Una sola lógica de tabs/search/polling/skeleton, el deporte es un parámetro de configuración
 - **Design:** Dark mode por defecto, paleta por league
