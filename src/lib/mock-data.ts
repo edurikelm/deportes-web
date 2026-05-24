@@ -20,7 +20,7 @@ export const MOCK_MATCHES: Match[] = [
     startTime: '2026-04-28T14:00:00Z',
     minute: 45,
     league: {
-      id: '1',
+      id: '39',
       name: 'Premier League',
       country: 'England',
       logo: 'https://cdn.sofascore.com/images/league/logo/2.png',
@@ -83,7 +83,7 @@ export const MOCK_MATCHES: Match[] = [
     startTime: '2026-04-28T16:00:00Z',
     minute: 67,
     league: {
-      id: '2',
+      id: '140',
       name: 'La Liga',
       country: 'Spain',
       logo: 'https://cdn.sofascore.com/images/league/logo/8.png',
@@ -132,7 +132,7 @@ export const MOCK_MATCHES: Match[] = [
     status: 'upcoming',
     startTime: '2026-04-28T18:30:00Z',
     league: {
-      id: '3',
+      id: '78',
       name: 'Bundesliga',
       country: 'Germany',
       logo: 'https://cdn.sofascore.com/images/league/logo/7.png',
@@ -162,7 +162,7 @@ export const MOCK_MATCHES: Match[] = [
     status: 'finished',
     startTime: '2026-04-28T12:00:00Z',
     league: {
-      id: '4',
+      id: '135',
       name: 'Serie A',
       country: 'Italy',
       logo: 'https://cdn.sofascore.com/images/league/logo/23.png',
@@ -210,7 +210,7 @@ export const MOCK_MATCHES: Match[] = [
     status: 'upcoming',
     startTime: '2026-04-29T16:00:00Z',
     league: {
-      id: '1',
+      id: '39',
       name: 'Premier League',
       country: 'England',
       logo: 'https://cdn.sofascore.com/images/league/logo/2.png',
@@ -241,7 +241,7 @@ export const MOCK_MATCHES: Match[] = [
     status: 'finished',
     startTime: '2026-04-28T20:45:00Z',
     league: {
-      id: '5',
+      id: '61',
       name: 'Ligue 1',
       country: 'France',
       logo: 'https://cdn.sofascore.com/images/league/logo/5.png',

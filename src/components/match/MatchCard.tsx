@@ -6,6 +6,7 @@ import type { Match, SportConfig } from '@/lib/types'
 import { FOOTBALL_CONFIG } from '@/lib/types'
 import { LiveIndicator } from './LiveIndicator'
 import { StatusBadge } from './StatusBadge'
+import { MatchTime } from './MatchTime'
 
 interface MatchCardProps {
   match: Match
@@ -94,24 +95,20 @@ export function MatchCard({ match, sportConfig = FOOTBALL_CONFIG }: MatchCardPro
                 </div>
                 {match.score.ht && (
                   <span className="mt-1 text-xs text-[#666]">
-                    HT {match.score.ht.home}-{match.score.ht.away}
+                    PT {match.score.ht.home}-{match.score.ht.away}
                   </span>
                 )}
                 {match.score.quarters && sportConfig.sport === 'basketball' && (
                   <span className="mt-1 text-xs text-[#666]">
-                    {match.score.quarters.map((q, i) => `Q${i + 1}-${q.home}/${q.away}`).join(' ')}
+                    {match.score.quarters.map((q, i) => `C${i + 1}-${q.home}/${q.away}`).join(' ')}
                   </span>
                 )}
-                {match.status === 'live' && match.minute && (
-                  <span className="mt-1 text-sm text-[#ef4444] font-medium">
-                    {match.minute}&apos;
-                  </span>
+                {match.status === 'live' && (
+                  <MatchTime match={match} className="mt-1 text-sm text-[#ef4444] font-medium" />
                 )}
               </>
             ) : (
-              <span className="font-mono text-xl text-[#a1a1a1]">
-                {formatTime(match.startTime)}
-              </span>
+              <MatchTime match={match} className="font-mono text-xl text-[#a1a1a1]" />
             )}
           </div>
 

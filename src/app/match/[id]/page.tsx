@@ -7,6 +7,8 @@ import type { Match, MatchEvent } from '@/lib/types'
 import { ScoreDisplay } from '@/components/match/ScoreDisplay'
 import { MatchTimeline } from '@/components/match/MatchTimeline'
 import { StreamLinks } from '@/components/match/StreamLinks'
+import { MatchClockProvider } from '@/components/match/MatchClockContext'
+import { useMatchPolling } from '@/hooks/useMatchPolling'
 
 function PageSkeleton() {
   return (
@@ -24,42 +26,30 @@ export default function MatchDetailPage() {
   const [match, setMatch] = useState<Match | null>(null)
   const [events, setEvents] = useState<MatchEvent[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
 
   const matchId = params.id as string
 
-  useEffect(() => {
-    async function fetchMatch() {
-      setLoading(true)
-      setError(null)
-
-      try {
-        const [matchRes, eventsRes] = await Promise.all([
-          fetch(`/api/matches/${matchId}`),
-          fetch(`/api/matches/${matchId}/events`).catch(() => ({ json: async () => ({ events: [] }) }))
-        ])
-
-        const matchData = await matchRes.json()
-        const eventsData = await eventsRes.json()
-
-        if (!matchRes.ok || !matchData.match) {
-          setError(matchData.error || 'Partido no encontrado')
-          setLoading(false)
-          return
-        }
-
+  const { lastUpdated, error } = useMatchPolling({
+    url: matchId ? `/api/matches/${matchId}` : undefined,
+    onData: (data) => {
+      const matchData = data as { match: Match }
+      if (matchData.match) {
         setMatch(matchData.match)
-        setEvents(eventsData.events || [])
-      } catch {
-        setError('Error al cargar el partido')
-      } finally {
         setLoading(false)
       }
-    }
+    },
+  })
 
-    if (matchId) {
-      fetchMatch()
-    }
+  useEffect(() => {
+    if (!matchId) return
+    fetch(`/api/matches/${matchId}/events`)
+      .then((res) => res.json())
+      .then((data) => {
+        setEvents(data.events || [])
+      })
+      .catch(() => {
+        // events are non-critical
+      })
   }, [matchId])
 
   const handleShare = async () => {
@@ -143,32 +133,34 @@ export default function MatchDetailPage() {
           </button>
         </div>
 
-        <div className="mb-6 overflow-hidden rounded-xl border border-[#262626] bg-[#141414]">
-          <div
-            className="h-1"
-            style={{ backgroundColor: accentColor }}
-          />
-          <div className="p-6">
-            <div className="mb-4 flex items-center justify-center gap-2">
-              <div className="relative h-6 w-6 overflow-hidden rounded">
-                <Image
-                  src={match.league.logo}
-                  alt={match.league.name}
-                  fill
-                  sizes="24px"
-                  className="object-contain"
-                />
+        <MatchClockProvider lastFetchTimestamp={lastUpdated?.getTime()}>
+          <div className="mb-6 overflow-hidden rounded-xl border border-[#262626] bg-[#141414]">
+            <div
+              className="h-1"
+              style={{ backgroundColor: accentColor }}
+            />
+            <div className="p-6">
+              <div className="mb-4 flex items-center justify-center gap-2">
+                <div className="relative h-6 w-6 overflow-hidden rounded">
+                  <Image
+                    src={match.league.logo}
+                    alt={match.league.name}
+                    fill
+                    sizes="24px"
+                    className="object-contain"
+                  />
+                </div>
+                <span className="text-sm text-[#a1a1a1]">{match.league.name}</span>
               </div>
-              <span className="text-sm text-[#a1a1a1]">{match.league.name}</span>
-            </div>
 
-            <ScoreDisplay match={match} />
+              <ScoreDisplay match={match} />
+            </div>
           </div>
-        </div>
+        </MatchClockProvider>
 
         <div className="mb-6 overflow-hidden rounded-xl border border-[#262626] bg-[#141414]">
           <div className="border-b border-[#262626] px-6 py-4">
-            <h2 className="text-lg font-semibold text-white">Timeline</h2>
+            <h2 className="text-lg font-semibold text-white">Cronología</h2>
           </div>
           <div className="p-6">
             <MatchTimeline events={events} />
@@ -177,7 +169,7 @@ export default function MatchDetailPage() {
 
         <div className="mb-6 overflow-hidden rounded-xl border border-[#262626] bg-[#141414]">
           <div className="border-b border-[#262626] px-6 py-4">
-            <h2 className="text-lg font-semibold text-white">Streaming</h2>
+            <h2 className="text-lg font-semibold text-white">Transmisión</h2>
           </div>
           <div className="p-6">
             <StreamLinks links={match.streamLinks} />

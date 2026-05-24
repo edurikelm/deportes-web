@@ -37,10 +37,18 @@ describe('normalizeMatch', () => {
     expect(result.status).toBe('upcoming')
   })
 
-  it('extracts minute from status.description for live matches', () => {
-    const raw = makeRaw({ status: { code: '1H', description: "45'" } })
+  it('sets minute from status.elapsed and statusDetail from status.code when live (2H)', () => {
+    const raw = makeRaw({ status: { code: '2H', description: 'Second Half', elapsed: 67 } })
     const result = normalizeMatch(raw)
-    expect(result.minute).toBe(45)
+    expect(result.minute).toBe(67)
+    expect(result.statusDetail).toBe('2H')
+  })
+
+  it('handles elapsed=null (HT) — minute undefined, statusDetail present', () => {
+    const raw = makeRaw({ status: { code: 'HT', description: 'Halftime', elapsed: null } })
+    const result = normalizeMatch(raw)
+    expect(result.minute).toBeUndefined()
+    expect(result.statusDetail).toBe('HT')
   })
 
   it('sets score { home, away } for finished match', () => {

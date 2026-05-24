@@ -194,6 +194,16 @@ export async function fetchMmaFixtures(date: string, isLive = false): Promise<{
     'MMA API'
   )
 
+  const errors = (data as any).errors
+  if (errors && Object.keys(errors).length > 0) {
+    const { MOCK_MMA_MATCHES } = await import('@/lib/mock-data')
+    let matches = MOCK_MMA_MATCHES as unknown as NormalizedMmaMatch[]
+    if (isLive) {
+      matches = matches.filter(m => m.status === 'live') as unknown as NormalizedMmaMatch[]
+    }
+    return { matches, cached: false, cacheAge: 0 }
+  }
+
   const matches = (data.response || []).map(normalizeMmaMatch)
 
   return { matches, cached, cacheAge }

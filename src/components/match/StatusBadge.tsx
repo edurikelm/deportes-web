@@ -14,7 +14,7 @@ export function StatusBadge({ status, minute }: StatusBadgeProps) {
           <span className="relative inline-flex h-2 w-2 rounded-full bg-[#ef4444]" />
         </span>
         <span className="text-xs font-semibold uppercase tracking-wider text-[#ef4444]">
-          Live{minute ? ` ${minute}'` : ''}
+          En vivo{minute ? ` ${minute}'` : ''}
         </span>
       </div>
     )
@@ -23,14 +23,14 @@ export function StatusBadge({ status, minute }: StatusBadgeProps) {
   if (status === 'finished') {
     return (
       <span className="rounded bg-[#262626] px-2 py-0.5 text-xs font-medium uppercase tracking-wider text-[#22c55e]">
-        FT
+        Finalizado
       </span>
     )
   }
 
   return (
     <span className="rounded bg-[#262626] px-2 py-0.5 text-xs font-medium uppercase tracking-wider text-[#666]">
-      Upcoming
+       Próximo
     </span>
   )
 }

@@ -28,9 +28,9 @@ describe('MMA_CONFIG', () => {
 
   it('has event labels for all MMA event types', () => {
     expect(MMA_CONFIG.eventLabels.knockout).toBe('Knockout')
-    expect(MMA_CONFIG.eventLabels.submission).toBe('Submission')
+    expect(MMA_CONFIG.eventLabels.submission).toBe('Sumisión')
     expect(MMA_CONFIG.eventLabels.tko).toBe('TKO')
-    expect(MMA_CONFIG.eventLabels.decision).toBe('Decision')
+    expect(MMA_CONFIG.eventLabels.decision).toBe('Decisión')
   })
 })
 

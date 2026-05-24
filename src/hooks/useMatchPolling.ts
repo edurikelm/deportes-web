@@ -3,7 +3,11 @@
 import { useEffect, useRef, useState } from 'react'
 
 interface UseMatchPollingOptions {
-  onFetch: () => Promise<void>
+  url?: string
+  sport?: string
+  status?: string
+  onFetch?: () => Promise<void>
+  onData?: (data: unknown) => void
   interval?: number
   enabled?: boolean
 }
@@ -20,8 +24,20 @@ interface UseMatchPollingReturn {
   rateLimitInfo: RateLimitInfo
 }
 
+function buildUrl(sport?: string, status?: string): string {
+  const params = new URLSearchParams()
+  if (sport) params.set('sport', sport)
+  if (status) params.set('status', status)
+  const qs = params.toString()
+  return qs ? `/api/matches?${qs}` : '/api/matches'
+}
+
 export function useMatchPolling({
+  url,
+  sport,
+  status,
   onFetch,
+  onData,
   interval = 30000,
   enabled = true,
 }: UseMatchPollingOptions): UseMatchPollingReturn {
@@ -31,6 +47,10 @@ export function useMatchPolling({
   const [rateLimitInfo, setRateLimitInfo] = useState<RateLimitInfo>({ active: false, remainingSeconds: 0 })
 
   const onFetchRef = useRef(onFetch)
+  const onDataRef = useRef(onData)
+  const urlRef = useRef(url)
+  const sportRef = useRef(sport)
+  const statusRef = useRef(status)
   const enabledRef = useRef(enabled)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
   const rateLimitTimerRef = useRef<NodeJS.Timeout | null>(null)
@@ -39,6 +59,22 @@ export function useMatchPolling({
   useEffect(() => {
     onFetchRef.current = onFetch
   }, [onFetch])
+
+  useEffect(() => {
+    onDataRef.current = onData
+  }, [onData])
+
+  useEffect(() => {
+    urlRef.current = url
+  }, [url])
+
+  useEffect(() => {
+    sportRef.current = sport
+  }, [sport])
+
+  useEffect(() => {
+    statusRef.current = status
+  }, [status])
 
   useEffect(() => {
     enabledRef.current = enabled
@@ -79,7 +115,19 @@ export function useMatchPolling({
         return
       }
       try {
-        await onFetchRef.current()
+        const currentUrl = urlRef.current
+        if (currentUrl || sportRef.current || statusRef.current) {
+          const fetchUrl = currentUrl || buildUrl(sportRef.current, statusRef.current)
+          const res = await fetch(fetchUrl)
+          if (!res.ok) {
+            if (res.status === 429) throw new Error('429 Too Many Requests')
+            throw new Error(`HTTP ${res.status}`)
+          }
+          const data = await res.json()
+          onDataRef.current?.(data)
+        } else if (onFetchRef.current) {
+          await onFetchRef.current()
+        }
         if (isMountedRef.current) {
           setLastUpdated(new Date())
           setError(null)

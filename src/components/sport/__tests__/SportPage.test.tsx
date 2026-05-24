@@ -44,11 +44,11 @@ describe('SportPage', () => {
       render(<SportPage sport="football" />)
     })
 
-    expect(screen.getByText('All')).toBeDefined()
-    const liveElements = screen.getAllByText('Live')
+    expect(screen.getByText('Todos')).toBeDefined()
+    const liveElements = screen.getAllByText('En vivo')
     expect(liveElements.length).toBeGreaterThanOrEqual(1)
-    expect(screen.getByText('Upcoming')).toBeDefined()
-    expect(screen.getByText('Finished')).toBeDefined()
+    expect(screen.getByText('Próximos')).toBeDefined()
+    expect(screen.getByText('Finalizados')).toBeDefined()
   })
 
   it('shows MatchListSkeleton while loading', () => {
@@ -62,12 +62,12 @@ describe('SportPage', () => {
     await act(async () => {
       render(<SportPage sport="football" />)
     })
-    expect(screen.getByText('LiveScores')).toBeDefined()
+    expect(screen.getByText('Fútbol')).toBeDefined()
 
     await act(async () => {
       render(<SportPage sport="basketball" />)
     })
-    expect(screen.getByText('Basket')).toBeDefined()
+    expect(screen.getByText('Básquet')).toBeDefined()
 
     await act(async () => {
       render(<SportPage sport="mma" />)
@@ -125,7 +125,7 @@ describe('SportPage', () => {
       render(<SportPage sport="football" />)
     })
 
-    const liveButtons = screen.getAllByText('Live')
+    const liveButtons = screen.getAllByText('En vivo')
     expect(liveButtons.length).toBeGreaterThanOrEqual(1)
   })
 
@@ -216,7 +216,7 @@ describe('SportPage', () => {
     expect(arsenalElements1.length).toBeGreaterThanOrEqual(1)
     expect(screen.queryByText('Real Madrid')).toBeNull()
 
-    const upcomingTab = screen.getByText('Upcoming')
+    const upcomingTab = screen.getByText('Próximos')
     await act(async () => {
       fireEvent.click(upcomingTab)
     })
@@ -227,7 +227,7 @@ describe('SportPage', () => {
 
     expect(screen.queryByText('Premier League')).toBeNull()
 
-    const allTab = screen.getByText('All')
+    const allTab = screen.getByText('Todos')
     await act(async () => {
       fireEvent.click(allTab)
     })
@@ -268,7 +268,7 @@ describe('SportPage', () => {
     expect(screen.queryByText('Real Madrid')).toBeNull()
 
     await act(async () => {
-      const upcomingTab = screen.getAllByText('Upcoming')[0]
+      const upcomingTab = screen.getAllByText('Próximos')[0]
       fireEvent.click(upcomingTab)
     })
 

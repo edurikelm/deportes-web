@@ -15,7 +15,13 @@ Competencia footballística (Premier League, La Liga, etc). Tiene `id`, `name`, 
 Gol, tarjeta amarilla/roja, penal, sustitución para fútbol. Para otros deportes, campos opcionales genéricos (`extra?: Record<string, unknown>`) permiten flexibilidad. Tipo, minuto, jugador, equipo. No todos los partidos tienen eventos — campo opcional.
 
 ### StreamLink (Link de Streaming)
-Canal de TV o plataforma de streaming donde transmite el partido. Tipo: `tv` | `stream`. Nombre: "ESPN", "Star+", "Canal+".
+Canal de TV o plataforma de streaming donde transmite el partido. Tipo: `tv` | `stream`. Nombre: "ESPN", "Star+", "Canal+". Deben resolverse por país del espectador — hoy hardcodeado a Chile.
+
+### StreamingResolver
+Config `(leagueId) → StreamLink[]` que mapea ligas a las plataformas que las transmiten en un país. Vive en `src/lib/streaming-links.ts`. Resuelve en el adapter después de normalizar, solo si la API externa no trajo links.
+
+### Broadcasting Rights
+Derechos de transmisión por país. No se modelan explícitamente — el `StreamingResolver` captura el resultado de los rights sin necesidad de modelar contratos, dueños, ni fechas de vigencia. Si cambian los derechos, se actualiza el mapping.
 
 ### StatusBadge (Indicador de Estado)
 Badge visual que muestra el estado del partido: "LIVE" (pulso rojo), "Upcoming" (gris), "FT" (verde).
@@ -25,6 +31,30 @@ Vista principal que lista partidos del día. Filtros: tabs de estado + dropdown 
 
 ### Live
 Vista dedicada a partidos en vivo (status=live). Auto-refresh cada 30s.
+
+### MatchClock (Reloj de Partido)
+Cálculo local de tiempo para cada partido. El hook `useMatchClock` computa el display según el status:
+- **Live**: minuto actual desde `fixture.status.elapsed` (API-Football), interpolado client-side. Muestra `"67'"`. Cuando `statusDetail` indica un estado especial, muestra un label descriptivo (ver StatusDetail).
+- **Upcoming (futuro)**: countdown regresivo. `"En 2h 15m"` para >1h, `"En 5m"` para <1h.
+- **Upcoming (pasado <3h)**: `"Retrasado"` — el partido debió empezar pero la API no lo reporta como live.
+- **Upcoming (pasado >3h)**: `"Suspendido"` — probablemente postergado.
+- **Finished**: `"FT"`.
+- **startTime inválido**: `"--:--"`.
+
+El poll siempre gana: cuando llegan datos nuevos del servidor, el reloj local se resetea al valor del servidor. El reloj local avanza entre polls para dar sensación de tiempo real.
+
+### StatusDetail (Detalle de Estado)
+Campo opcional en Match que preserva el código de estado raw de la API para partidos live (`'1H'`, `'2H'`, `'HT'`, `'ET'`, `'BT'`, `'INT'`, `'SUSP'`, `'P'`, `'LIVE'`). Permite que `computeClock` muestre labels descriptivos en vez del minuto numérico:
+
+| Código | Label |
+|--------|-------|
+| `HT` | Entretiempo |
+| `ET` | Tiempo Extra (con minuto: `"Tiempo Extra 105'"`) |
+| `BT` | Descanso |
+| `INT` | Interrumpido |
+| `SUSP` | Suspendido |
+| `P` | Penales |
+| `1H`, `2H`, `LIVE` | Sin label, solo minuto numérico |
 
 ## Out of Scope
 

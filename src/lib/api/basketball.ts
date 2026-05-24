@@ -126,13 +126,6 @@ export interface NormalizedBasketballMatch {
 export function clearCache() {
   sharedClearCache()
 }
-
-function extractMinute(description: string): number | undefined {
-  if (!description) return undefined
-  const match = description.match(/(\d+)/)
-  return match ? parseInt(match[1], 10) : undefined
-}
-
 export function normalizeBasketballMatch(raw: NbaFixture): NormalizedBasketballMatch {
   const statusShort = raw.status.short
   let status: 'upcoming' | 'live' | 'finished' = 'upcoming'
@@ -200,6 +193,16 @@ export async function fetchNbaFixtures(date: string, isLive = false): Promise<{
     isLive ? 10 : 60,
     'NBA API'
   )
+
+    const errors = (data as any).errors
+  if (errors && Object.keys(errors).length > 0) {
+    const { MOCK_BASKETBALL_MATCHES } = await import('@/lib/mock-data')
+    let matches = MOCK_BASKETBALL_MATCHES as unknown as NormalizedBasketballMatch[]
+    if (isLive) {
+      matches = matches.filter(m => m.status === 'live') as NormalizedBasketballMatch[]
+    }
+    return { matches, cached: false, cacheAge: 0 }
+  }
 
   const matches = (data.response || []).map(normalizeBasketballMatch)
 

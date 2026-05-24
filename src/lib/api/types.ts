@@ -23,6 +23,7 @@ export interface ApiFootballMatch {
   status: {
     code: string
     description: string
+    elapsed?: number | null
   }
   score?: {
     home: number

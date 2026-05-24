@@ -27,8 +27,8 @@ export async function GET(
         teams: {
           home: { id: number; name: string; logo: string }
           away: { id: number; name: string; logo: string }
-          goals: { home: number; away: number }
         }
+        goals: { home: number; away: number }
         status: { long: string; short: string }
         score?: {
           fulltime: { home: number; away: number }
@@ -72,10 +72,10 @@ export async function GET(
         logo: f.teams.away.logo,
       },
       startTime: f.fixture.date,
-      status: { code: f.status?.short || 'TBD', description: f.status?.long || 'Match Not Started' },
+      status: { code: f.fixture.status.short || 'TBD', description: f.fixture.status.long || 'Match Not Started', elapsed: f.fixture.status.elapsed },
       score: {
-        home: f.teams.goals?.home ?? f.score?.fulltime?.home ?? null,
-        away: f.teams.goals?.away ?? f.score?.fulltime?.away ?? null,
+        home: f.goals?.home ?? f.score?.fulltime?.home ?? null,
+        away: f.goals?.away ?? f.score?.fulltime?.away ?? null,
         ht: f.score?.halftime,
       },
       events: (f.events || []).map(e => ({

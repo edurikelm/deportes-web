@@ -70,7 +70,7 @@ function EventItem({ event, sportConfig }: { event: MatchEvent; sportConfig: Spo
             <span className="text-xs text-[#a1a1a1]">{event.player}</span>
           )}
           {event.assist && (
-            <span className="text-xs text-[#666]">Assist: {event.assist}</span>
+            <span className="text-xs text-[#666]">Asistencia: {event.assist}</span>
           )}
           {event.comment && (
             <span className="text-xs text-[#666]">{event.comment}</span>
@@ -99,7 +99,7 @@ export function MatchTimeline({ events, sportConfig = FOOTBALL_CONFIG }: MatchTi
   const isBasketball = sportConfig.sport === 'basketball'
 
   if (isBasketball) {
-    const quarterLabels = ['Q1', 'Q2', 'Q3', 'Q4']
+    const quarterLabels = ['C1', 'C2', 'C3', 'C4']
     const periodEvents = quarterLabels.map((label, idx) => ({
       label,
       events: events

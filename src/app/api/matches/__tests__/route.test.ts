@@ -21,7 +21,7 @@ const baseMatch = {
   homeTeam: { id: '1', name: 'A', shortName: 'A', logo: '' },
   awayTeam: { id: '2', name: 'B', shortName: 'B', logo: '' },
   startTime: '2026-05-01T14:00:00Z',
-  league: { id: '1', name: 'League', country: 'C', logo: '', color: '#000' },
+  league: { id: '39', name: 'Premier League', country: 'England', logo: '', color: '#000' },
   events: [],
   streamLinks: [],
 }
@@ -96,18 +96,18 @@ describe('GET /api/matches', () => {
   it('filters by league_id', async () => {
     mockFootballFixtures.mockResolvedValue({
       matches: [
-        { ...baseMatch, id: '1', sport: 'football' as const, status: 'live' as const, league: { id: '1', name: 'Premier League', country: 'England', logo: '', color: '#000' } },
-        { ...baseMatch, id: '2', sport: 'football' as const, status: 'live' as const, league: { id: '2', name: 'La Liga', country: 'Spain', logo: '', color: '#000' } },
+        { ...baseMatch, id: '1', sport: 'football' as const, status: 'live' as const, league: { id: '39', name: 'Premier League', country: 'England', logo: '', color: '#000' } },
+        { ...baseMatch, id: '2', sport: 'football' as const, status: 'live' as const, league: { id: '140', name: 'La Liga', country: 'Spain', logo: '', color: '#000' } },
       ],
       cached: false,
       cacheAge: 0,
     })
 
-    const response = await GET(makeRequest('http://localhost:3000/api/matches?sport=football&league_id=1'))
+    const response = await GET(makeRequest('http://localhost:3000/api/matches?sport=football&league_id=39'))
     const body = await response.json()
 
     expect(body.matches).toHaveLength(1)
-    expect(body.matches[0].league.id).toBe('1')
+    expect(body.matches[0].league.id).toBe('39')
   })
 
   it('returns 400 for malformed sport param', async () => {

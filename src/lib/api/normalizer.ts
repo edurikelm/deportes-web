@@ -9,9 +9,7 @@ export function normalizeMatch(raw: ApiFootballMatch, sport: Sport = 'football')
 
   if (status === 'upcoming' && startTime <= now) {
     const elapsedMinutes = Math.floor((now.getTime() - startTime.getTime()) / 60000)
-    if (elapsedMinutes >= 90) {
-      status = 'finished'
-    } else if (elapsedMinutes >= 0) {
+    if (elapsedMinutes >= 0) {
       status = 'live'
     }
   }
@@ -33,7 +31,8 @@ export function normalizeMatch(raw: ApiFootballMatch, sport: Sport = 'football')
     },
     status,
     startTime: raw.startTime,
-    minute: status === 'live' ? extractMinute(raw.status.description) : undefined,
+    minute: status === 'live' ? raw.status.elapsed ?? undefined : undefined,
+    statusDetail: status === 'live' ? raw.status.code : undefined,
     league: {
       id: String(raw.tournament.id),
       name: raw.tournament.name,
@@ -57,12 +56,21 @@ function mapStatus(code: string): Match['status'] {
     case '2H':
     case 'ET':
     case 'P':
+    case 'BT':
+    case 'LIVE':
+    case 'HT':
+    case 'INT':
+    case 'SUSP':
     case 'inprogress':
     case 'halftime':
       return 'live'
     case 'FT':
     case 'AET':
     case 'PEN':
+    case 'WO':
+    case 'CANC':
+    case 'ABD':
+    case 'AWD':
     case 'finished':
     case 'canceled':
     case 'postponed':
@@ -71,13 +79,6 @@ function mapStatus(code: string): Match['status'] {
       return 'upcoming'
   }
 }
-
-function extractMinute(description: string): number | undefined {
-  if (!description) return undefined
-  const match = description.match(/(\d+)/)
-  return match ? parseInt(match[1], 10) : undefined
-}
-
 function normalizeEvents(events: ApiFootballMatch['events'], homeTeamId?: number, awayTeamId?: number): MatchEvent[] {
   return (events || []).map((e) => ({
     type: mapEventType(e.type),

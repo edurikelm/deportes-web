@@ -3,6 +3,7 @@ import type { Match } from '@/lib/types'
 import { fetchWithCache } from './client'
 import { normalizeMatch } from './normalizer'
 import { MOCK_MATCHES } from '@/lib/mock-data'
+import { resolveStreamLinks } from '@/lib/streaming-links'
 
 export class FootballAdapter implements SportDataAdapter {
   async fetchFixtures(date: string, isLive: boolean) {
@@ -24,6 +25,14 @@ export class FootballAdapter implements SportDataAdapter {
       { headers: { 'x-no-cache': isLive ? 'true' : 'false' } },
       ttl,
     )
+
+    if (data.errors && Object.keys(data.errors).length > 0) {
+      let matches = MOCK_MATCHES
+      if (isLive) {
+        matches = matches.filter(m => m.status === 'live')
+      }
+      return { matches, cached: false, cacheAge: 0 }
+    }
 
     const matches: Match[] = (data.response || []).map((f: any) => {
       const raw = {
@@ -48,10 +57,10 @@ export class FootballAdapter implements SportDataAdapter {
           logo: f.teams.away.logo,
         },
         startTime: f.fixture.date,
-        status: { code: f.status?.short || 'TBD', description: f.status?.long || 'Match Not Started' },
+        status: { code: f.fixture.status.short || 'TBD', description: f.fixture.status.long || 'Match Not Started', elapsed: f.fixture.status.elapsed },
         score: {
-          home: f.teams.goals?.home ?? f.score?.fulltime?.home ?? null,
-          away: f.teams.goals?.away ?? f.score?.fulltime?.away ?? null,
+          home: f.goals?.home ?? f.score?.fulltime?.home ?? null,
+          away: f.goals?.away ?? f.score?.fulltime?.away ?? null,
           ht: f.score?.halftime,
         },
         events: (f.events || []).map((e: any) => ({
@@ -64,7 +73,12 @@ export class FootballAdapter implements SportDataAdapter {
           comment: e.comment,
         })),
       }
-      return normalizeMatch(raw as any)
+      const match = normalizeMatch(raw as any)
+      if (match.streamLinks.length === 0) {
+        const links = resolveStreamLinks(match.league.id)
+        if (links) match.streamLinks = links
+      }
+      return match
     })
 
     return { matches, cached, cacheAge }

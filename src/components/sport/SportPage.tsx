@@ -7,6 +7,7 @@ import { MatchList } from '@/components/match/MatchList'
 import { MatchListSkeleton } from '@/components/match/MatchCardSkeleton'
 import { SearchBar } from '@/components/search/SearchBar'
 import { useMatchPolling } from '@/hooks/useMatchPolling'
+import { MatchClockProvider } from '@/components/match/MatchClockContext'
 
 type TabType = 'all' | MatchStatus
 
@@ -15,10 +16,10 @@ interface SportPageProps {
 }
 
 const TABS: { value: TabType; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'live', label: 'Live' },
-  { value: 'upcoming', label: 'Upcoming' },
-  { value: 'finished', label: 'Finished' },
+  { value: 'all', label: 'Todos' },
+  { value: 'live', label: 'En vivo' },
+  { value: 'upcoming', label: 'Próximos' },
+  { value: 'finished', label: 'Finalizados' },
 ]
 
 interface MatchesResponse {
@@ -98,7 +99,7 @@ export function SportPage({ sport }: SportPageProps) {
                 <span className="absolute inline-flex h-full w-full rounded-full bg-[#22c55e] opacity-75 animate-ping" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-[#22c55e]" />
               </span>
-              <span>Live</span>
+              <span>En vivo</span>
             </div>
             {lastUpdated && (
               <span className="text-xs text-[#666]">
@@ -141,7 +142,9 @@ export function SportPage({ sport }: SportPageProps) {
         {loading ? (
           <MatchListSkeleton count={6} />
         ) : (
-          <MatchList matches={displayedMatches} />
+          <MatchClockProvider lastFetchTimestamp={lastUpdated?.getTime()}>
+            <MatchList matches={displayedMatches} />
+          </MatchClockProvider>
         )}
       </div>
     </div>

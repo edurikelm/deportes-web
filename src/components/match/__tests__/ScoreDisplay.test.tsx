@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { ScoreDisplay } from '../ScoreDisplay'
 import { FOOTBALL_CONFIG, BASKETBALL_CONFIG, MMA_CONFIG } from '@/lib/types'
@@ -77,21 +77,28 @@ const upcomingMatch: Match = {
 }
 
 describe('ScoreDisplay', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
   it('renders basketball quarter scores correctly', () => {
     render(<ScoreDisplay match={basketballMatch} sportConfig={BASKETBALL_CONFIG} />)
 
     expect(screen.getByText('112')).toBeDefined()
     expect(screen.getByText('118')).toBeDefined()
-    expect(screen.getByText('Q1 28-30')).toBeDefined()
-    expect(screen.getByText('Q2 24-29')).toBeDefined()
+    expect(screen.getByText('C1 28-30')).toBeDefined()
+    expect(screen.getByText('C2 24-29')).toBeDefined()
   })
 
-  it('renders live football match scores with HT', () => {
+  it('renders live football match scores with HT and computed minute', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-05-01T15:07:00Z'))
+
     render(<ScoreDisplay match={footballMatch} sportConfig={FOOTBALL_CONFIG} />)
 
     expect(screen.getByText('2')).toBeDefined()
     expect(screen.getByText('1')).toBeDefined()
-    expect(screen.getByText('HT 1 - 0')).toBeDefined()
+    expect(screen.getByText('PT 1 - 0')).toBeDefined()
     expect(screen.getByText("67'")).toBeDefined()
   })
 
@@ -108,9 +115,19 @@ describe('ScoreDisplay', () => {
     expect(screen.getByText('vs')).toBeDefined()
   })
 
+  it('renders upcoming match with countdown before start', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-05-02T16:00:00Z'))
+
+    render(<ScoreDisplay match={upcomingMatch} sportConfig={FOOTBALL_CONFIG} />)
+
+    expect(screen.getByText('vs')).toBeDefined()
+    expect(screen.getByText('En 2h 30m')).toBeDefined()
+  })
+
   it('renders finished match with FT badge', () => {
     render(<ScoreDisplay match={basketballMatch} sportConfig={BASKETBALL_CONFIG} />)
 
-    expect(screen.getByText('FT')).toBeDefined()
+    expect(screen.getByText('Finalizado')).toBeDefined()
   })
 })

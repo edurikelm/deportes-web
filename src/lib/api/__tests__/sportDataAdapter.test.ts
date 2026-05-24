@@ -45,7 +45,7 @@ describe('FootballAdapter', () => {
       const mockResponse = {
         response: [
           {
-            fixture: { id: 1, date: '2026-05-01T14:00:00Z' },
+            fixture: { id: 1, date: '2026-05-01T14:00:00Z', status: { short: 'FT', long: 'Match Finished', elapsed: 90 } },
             league: { id: 1, name: 'Premier League', country: 'England', logo: '' },
             teams: {
               home: { id: 1, name: 'Arsenal', logo: '' },

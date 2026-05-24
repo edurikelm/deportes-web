@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ADAPTERS } from '@/lib/api/adapterRegistry'
 import type { Sport } from '@/lib/types'
+import { getImportantLeagueIds } from '@/lib/sportPageConfig'
 
 const VALID_SPORTS: Sport[] = ['football', 'basketball', 'mma']
 
@@ -38,6 +39,10 @@ export async function GET(request: NextRequest) {
     }
     if (teamId) {
       filtered = filtered.filter(m => m.homeTeam.id === teamId || m.awayTeam.id === teamId)
+    }
+    if (searchParams.get('important') !== 'false') {
+      const importantIds = getImportantLeagueIds(sport)
+      filtered = filtered.filter(m => importantIds.includes(m.league.id))
     }
 
     return NextResponse.json({

@@ -30,10 +30,10 @@ describe('MatchTimeline', () => {
     ]
     render(<MatchTimeline events={events} sportConfig={BASKETBALL_CONFIG} />)
 
-    expect(screen.getByText('Q1')).toBeDefined()
-    expect(screen.getByText('Q2')).toBeDefined()
-    expect(screen.getByText('Q3')).toBeDefined()
-    expect(screen.getByText('Q4')).toBeDefined()
+    expect(screen.getByText('C1')).toBeDefined()
+    expect(screen.getByText('C2')).toBeDefined()
+    expect(screen.getByText('C3')).toBeDefined()
+    expect(screen.getByText('C4')).toBeDefined()
   })
 
   it('shows empty state message when no events', () => {
@@ -50,7 +50,7 @@ describe('MatchTimeline', () => {
     render(<MatchTimeline events={events} sportConfig={MMA_CONFIG} />)
 
     expect(screen.getByText('Knockout')).toBeDefined()
-    expect(screen.getByText('Submission')).toBeDefined()
+    expect(screen.getByText('Sumisión')).toBeDefined()
     expect(screen.getByText('Pereira')).toBeDefined()
     expect(screen.getByText('Oliveira')).toBeDefined()
   })

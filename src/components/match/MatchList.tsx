@@ -29,9 +29,9 @@ export function MatchList({ matches, sportConfig }: MatchListProps) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
         <div className="mb-4 text-6xl">⚽</div>
-        <h3 className="mb-2 text-lg font-semibold text-white">No matches today</h3>
+        <h3 className="mb-2 text-lg font-semibold text-white">Sin partidos hoy</h3>
         <p className="text-sm text-[#666]">
-          There are no scheduled matches for this date.
+          No hay partidos programados para esta fecha.
         </p>
       </div>
     )

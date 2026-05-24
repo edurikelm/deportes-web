@@ -5,15 +5,15 @@ import { usePathname } from 'next/navigation'
 import { isSportActive } from '@/lib/utils'
 
 const SPORTS = [
-  { href: '/', label: 'Football' },
+  { href: '/', label: 'Fútbol' },
   { href: '/basketball', label: 'Básquet' },
   { href: '/mma', label: 'MMA' },
 ]
 
 const NAV_ITEMS = [
-  { href: '/', label: 'Home' },
-  { href: '/live', label: 'Live' },
-  { href: '/search', label: 'Search' },
+  { href: '/', label: 'Inicio' },
+  { href: '/live', label: 'En vivo' },
+  { href: '/search', label: 'Buscar' },
 ]
 
 export function TopHeader() {

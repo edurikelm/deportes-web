@@ -26,15 +26,15 @@ describe('SPORT_PAGE_CONFIGS', () => {
     })
 
     it('has correct title', () => {
-      expect(config.title).toBe('LiveScores')
+      expect(config.title).toBe('Fútbol')
     })
 
     it('has correct accentColor', () => {
       expect(config.accentColor).toBe('#ef4444')
     })
 
-    it('has 5 leagues', () => {
-      expect(config.leagues).toHaveLength(5)
+    it('has 11 leagues', () => {
+      expect(config.leagues).toHaveLength(11)
     })
 
     it('has all required fields in each league', () => {
@@ -60,7 +60,7 @@ describe('SPORT_PAGE_CONFIGS', () => {
     })
 
     it('has correct title', () => {
-      expect(config.title).toBe('Basket')
+      expect(config.title).toBe('Básquet')
     })
 
     it('has correct accentColor', () => {

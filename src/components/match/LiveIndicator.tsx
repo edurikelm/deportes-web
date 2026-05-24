@@ -6,7 +6,7 @@ export function LiveIndicator() {
         <span className="relative inline-flex h-2 w-2 rounded-full bg-[#ef4444]" />
       </span>
       <span className="text-xs font-semibold uppercase tracking-wider text-[#ef4444]">
-        Live
+        En vivo
       </span>
     </div>
   )

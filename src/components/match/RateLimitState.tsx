@@ -20,10 +20,10 @@ export function RateLimitState({ nextRetryInSeconds }: RateLimitStateProps) {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center">
       <div className="mb-4 text-6xl">⏳</div>
-      <h3 className="mb-2 text-lg font-semibold text-white">Rate limit exceeded</h3>
+      <h3 className="mb-2 text-lg font-semibold text-white">Límite de solicitudes excedido</h3>
       <p className="mb-4 text-sm text-[#666]">
-        Too many requests. Retrying in{' '}
-        <span className="font-mono text-[#ef4444]">{countdown}</span> seconds...
+        Demasiadas solicitudes. Reintentando en{' '}
+        <span className="font-mono text-[#ef4444]">{countdown}</span> segundos...
       </p>
     </div>
   )

@@ -145,18 +145,30 @@ Sports dark — inspirado en Flashscore/Sofascore. Minimalista, muy visual, nave
 ### Architecture
 
 ```
-Browser → Next.js API Route (proxy) → API-Football
+Browser → Next.js API Route /api/matches?sport={sport}
                 ↓
-         Normalizer (raw → internal shape)
+         SportDataAdapter (seleccionado por ?sport=)
+                ↓
+         fetchWithCache (compartido, TTL según status)
+                ↓
+         Normalizer (raw → internal Match shape)
                 ↓
          Response con Cache headers
 ```
+
+Tres adaptadores implementan `SportDataAdapter`:
+- Football → `v3.football.api-sports.io`
+- Basketball → `v2.nba.api-sports.io`
+- MMA → `v1.mma.api-sports.io`
+
+Un solo endpoint (`/api/matches`) sirve los 3 deportes via `?sport=` param. Las rutas legacy `/api/matches/basketball` y `/api/matches/mma` redirigen al endpoint unificado.
 
 ### API Design
 
 **Endpoint:** `GET /api/matches`
 
 **Query params:**
+- `sport`: `football` | `basketball` | `mma` (default: `football`)
 - `date`: `YYYY-MM-DD` (default: today)
 - `status`: `live` | `finished` | `upcoming` (optional, para filtros)
 - `league_id`: ID numérico (optional)
@@ -229,7 +241,11 @@ Rationale: Tier gratuito tiene 100 req/day. Con cache, ~400-500 requests pueden 
 ```
 src/
 ├── app/
-│   ├── page.tsx                 # Home
+│   ├── page.tsx                 # Football (wrapper → SportPage)
+│   ├── basketball/
+│   │   └── page.tsx             # Basketball (wrapper → SportPage)
+│   ├── mma/
+│   │   └── page.tsx             # MMA (wrapper → SportPage)
 │   ├── live/
 │   │   └── page.tsx             # En Vivo
 │   ├── match/
@@ -237,8 +253,12 @@ src/
 │   │       └── page.tsx         # Match Detail
 │   └── api/
 │       └── matches/
-│           └── route.ts         # API proxy
+│           ├── route.ts         # API proxy unificado (?sport=)
+│           ├── basketball/      # redirige a ?sport=basketball
+│           └── mma/             # redirige a ?sport=mma
 ├── components/
+│   ├── sport/
+│   │   └── SportPage.tsx        # Página unificada parametrizada por deporte
 │   ├── ui/                      # shadcn/ui base
 │   ├── match/
 │   │   ├── MatchCard.tsx
@@ -246,22 +266,34 @@ src/
 │   │   ├── MatchList.tsx
 │   │   ├── MatchTimeline.tsx
 │   │   ├── LiveIndicator.tsx
-│   │   └── ScoreDisplay.tsx
+│   │   ├── ScoreDisplay.tsx
+│   │   ├── ErrorState.tsx
+│   │   └── RateLimitState.tsx
 │   ├── league/
 │   │   └── LeagueBadge.tsx
 │   ├── team/
 │   │   └── TeamLogo.tsx
+│   ├── navigation/
+│   │   ├── BottomNav.tsx
+│   │   └── TopHeader.tsx
 │   └── search/
 │       └── SearchBar.tsx
 ├── lib/
 │   ├── api/
-│   │   ├── client.ts            # fetcher con cache
-│   │   ├── types.ts             # internal types
-│   │   └── normalizer.ts        # raw API-Football → internal
-│   ├── constants.ts             # league colors, etc
-│   └── utils.ts
+│   │   ├── client.ts            # fetchWithCache compartido
+│   │   ├── types.ts             # API-football wire types
+│   │   ├── normalizer.ts        # raw football → internal Match
+│   │   ├── sportDataAdapter.ts  # interfaz SportDataAdapter
+│   │   ├── adapterRegistry.ts   # mapeo Sport → adapter
+│   │   ├── footballAdapter.ts   # implementación football
+│   │   ├── basketball.ts        # implementación basketball
+│   │   └── mma.ts               # implementación MMA
+│   ├── sportPageConfig.ts       # config por deporte (endpoint, leagues, branding)
+│   ├── mock-data.ts             # mocks consolidados de los 3 deportes
+│   ├── types.ts                 # tipos internos compartidos (Match, Sport, etc)
+│   └── utils.ts                 # cn(), isSportActive()
 └── hooks/
-    └── useMatchPolling.ts
+    └── useMatchPolling.ts       # polling con pause por visibility + rate limit info
 ```
 
 ## 7. Out of Scope (v1)
@@ -273,7 +305,7 @@ src/
 - PWA offline completo
 - Share de favoritos entre usuarios
 - Estadísticas avanzadas de equipo
-- Partidos de otros deportes (solo fútbol)
+- Partidos de otros deportes fuera de football, basketball, MMA
 
 ## 8. Success Metrics (v1)
 
