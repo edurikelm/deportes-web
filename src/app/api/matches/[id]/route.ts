@@ -22,7 +22,7 @@ export async function GET(
     const url = `https://v3.football.api-sports.io/fixtures?id=${id}`
     const { data } = await fetchWithCache<{
       response: Array<{
-        fixture: { id: number; date: string }
+        fixture: { id: number; date: string; status: { short: string; long: string; elapsed: number | null } }
         league: { id: number; name: string; country: string; logo: string }
         teams: {
           home: { id: number; name: string; logo: string }

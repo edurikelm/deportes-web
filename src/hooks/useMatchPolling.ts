@@ -10,6 +10,7 @@ interface UseMatchPollingOptions {
   onData?: (data: unknown) => void
   interval?: number
   enabled?: boolean
+  refreshKey?: string
 }
 
 interface RateLimitInfo {
@@ -40,6 +41,7 @@ export function useMatchPolling({
   onData,
   interval = 30000,
   enabled = true,
+  refreshKey,
 }: UseMatchPollingOptions): UseMatchPollingReturn {
   const [isPolling, setIsPolling] = useState(false)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
@@ -104,7 +106,7 @@ export function useMatchPolling({
   useEffect(() => {
     if (!enabled) {
       clearTimer()
-      setIsPolling(false)
+      queueMicrotask(() => setIsPolling(false))
       return
     }
 
@@ -154,7 +156,7 @@ export function useMatchPolling({
       }
     }
 
-    setIsPolling(true)
+    queueMicrotask(() => setIsPolling(true))
     tick()
 
     intervalRef.current = setInterval(tick, interval)
@@ -176,7 +178,7 @@ export function useMatchPolling({
       clearTimer()
       document.removeEventListener('visibilitychange', handleVisibility)
     }
-  }, [enabled, interval])
+  }, [enabled, interval, refreshKey])
 
   return { isPolling, lastUpdated, error, rateLimitInfo }
 }

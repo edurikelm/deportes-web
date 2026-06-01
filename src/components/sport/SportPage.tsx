@@ -1,152 +1,85 @@
 'use client'
 
-import { useState, useCallback, useEffect, useMemo } from 'react'
-import type { Match, MatchStatus, Sport } from '@/lib/types'
+import { useState, useCallback } from 'react'
+import type { Match, Sport } from '@/lib/types'
 import { SPORT_PAGE_CONFIGS } from '@/lib/sportPageConfig'
-import { MatchList } from '@/components/match/MatchList'
+import { MatchListCompact, type DateOption } from '@/components/match/MatchListCompact'
 import { MatchListSkeleton } from '@/components/match/MatchCardSkeleton'
-import { SearchBar } from '@/components/search/SearchBar'
+import { InlineSearch } from '@/components/search/InlineSearch'
 import { useMatchPolling } from '@/hooks/useMatchPolling'
 import { MatchClockProvider } from '@/components/match/MatchClockContext'
-
-type TabType = 'all' | MatchStatus
 
 interface SportPageProps {
   sport: Sport
 }
 
-const TABS: { value: TabType; label: string }[] = [
-  { value: 'all', label: 'Todos' },
-  { value: 'live', label: 'En vivo' },
-  { value: 'upcoming', label: 'Próximos' },
-  { value: 'finished', label: 'Finalizados' },
-]
-
-interface MatchesResponse {
-  matches: Match[]
-  meta: {
-    total: number
-    cached: boolean
-    cacheAge: number
-  }
-}
-
 export function SportPage({ sport }: SportPageProps) {
   const config = SPORT_PAGE_CONFIGS[sport]
-
-  const [activeTab, setActiveTab] = useState<TabType>('all')
   const [allMatches, setAllMatches] = useState<Match[]>([])
   const [loading, setLoading] = useState(true)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [searchLeagueId, setSearchLeagueId] = useState<string | undefined>()
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [activeDate, setActiveDate] = useState<DateOption>('today')
+  const [includeAllLeagues, setIncludeAllLeagues] = useState(false)
+
+  const getDateForOption = useCallback((option: DateOption) => {
+    const date = new Date()
+    if (option === 'yesterday') date.setDate(date.getDate() - 1)
+    if (option === 'tomorrow') date.setDate(date.getDate() + 1)
+
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }, [])
 
   const fetchMatches = useCallback(async () => {
     try {
-      const res = await fetch(config.apiEndpoint)
-      const data: MatchesResponse = await res.json()
+      const apiUrl = new URL(config.apiEndpoint, window.location.origin)
+      apiUrl.searchParams.set('date', getDateForOption(activeDate))
+      if (includeAllLeagues) {
+        apiUrl.searchParams.set('important', 'false')
+      }
+      const res = await fetch(apiUrl.toString())
+      const data = await res.json()
       setAllMatches(data.matches || [])
     } catch (error) {
       console.error(`Failed to fetch ${sport} matches:`, error)
+    } finally {
+      setLoading(false)
     }
-  }, [config.apiEndpoint, sport])
+  }, [config.apiEndpoint, sport, activeDate, includeAllLeagues, getDateForOption])
 
   const { lastUpdated } = useMatchPolling({
     onFetch: fetchMatches,
     interval: 30000,
-    enabled: activeTab !== 'upcoming',
+    enabled: true,
+    refreshKey: `${activeDate}-${includeAllLeagues}`,
   })
-
-  useEffect(() => {
-    fetchMatches().then(() => setLoading(false))
-  }, [fetchMatches])
-
-  const handleSearch = (query: string, leagueId?: string) => {
-    setSearchQuery(query)
-    setSearchLeagueId(leagueId)
-  }
-
-  const displayedMatches = useMemo(() => {
-    let filtered = allMatches
-
-    if (searchQuery.length >= 2) {
-      filtered = filtered.filter(m =>
-        m.homeTeam.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        m.awayTeam.name.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    }
-
-    if (searchLeagueId) {
-      filtered = filtered.filter(m => m.league.id === searchLeagueId)
-    }
-
-    if (activeTab !== 'all') {
-      filtered = filtered.filter(m => m.status === activeTab)
-    }
-
-    return filtered
-  }, [allMatches, searchQuery, searchLeagueId, activeTab])
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
-      <header className="sticky top-0 z-40 border-b border-[#1a1a1a] bg-[#0a0a0a]/95 backdrop-blur md:hidden">
-        <div className="mx-auto max-w-7xl px-4 py-4">
-          <div className="mb-4 flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-white">
-              <span style={{ color: config.accentColor }}>{config.title}</span>
-            </h1>
-            <div className="flex items-center gap-2 text-sm text-[#a1a1a1]">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full rounded-full bg-[#22c55e] opacity-75 animate-ping" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-[#22c55e]" />
-              </span>
-              <span>En vivo</span>
-            </div>
-            {lastUpdated && (
-              <span className="text-xs text-[#666]">
-                · {lastUpdated.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
-              </span>
-            )}
-          </div>
-
-          <div className="mb-4">
-            <SearchBar onSearch={handleSearch} leagues={config.leagues} matches={allMatches} />
-          </div>
-
-          <div className="flex gap-1 overflow-x-auto pb-2">
-            {TABS.map((tab) => (
-              <button
-                key={tab.value}
-                onClick={() => setActiveTab(tab.value)}
-                className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-colors ${
-                  activeTab === tab.value
-                    ? 'bg-white text-black'
-                    : 'bg-[#1a1a1a] text-[#a1a1a1] hover:bg-[#262626]'
-                }`}
-              >
-                {tab.label}
-                {tab.value === 'live' && (
-                  <span
-                    className="ml-1.5 inline-flex h-5 w-5 items-center justify-center rounded-full text-xs text-white"
-                    style={{ backgroundColor: config.accentColor }}
-                  >
-                    {allMatches.filter(m => m.status === 'live').length}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-      </header>
-
-      <div className="mx-auto max-w-7xl px-4 py-6">
-        {loading ? (
+      {searchOpen ? (
+        <InlineSearch
+          matches={allMatches}
+          sport={sport}
+          onClose={() => setSearchOpen(false)}
+        />
+      ) : loading ? (
+        <div className="p-6">
           <MatchListSkeleton count={6} />
-        ) : (
-          <MatchClockProvider lastFetchTimestamp={lastUpdated?.getTime()}>
-            <MatchList matches={displayedMatches} />
-          </MatchClockProvider>
-        )}
-      </div>
+        </div>
+      ) : (
+        <MatchClockProvider lastFetchTimestamp={lastUpdated?.getTime()}>
+          <MatchListCompact
+            matches={allMatches}
+            sport={sport}
+            activeDate={activeDate}
+            onDateChange={setActiveDate}
+            includeAllLeagues={includeAllLeagues}
+            onToggleAllLeagues={() => setIncludeAllLeagues((prev) => !prev)}
+          />
+        </MatchClockProvider>
+      )}
     </div>
   )
 }

@@ -32,8 +32,8 @@ export function ScoreDisplay({ match, sportConfig = FOOTBALL_CONFIG }: ScoreDisp
               className="object-contain p-1"
             />
           </div>
-          <span className="mt-2 text-sm font-semibold text-white">
-            {match.homeTeam.shortName || match.homeTeam.name}
+          <span className="mt-2 max-w-32 truncate text-center text-sm font-semibold text-white sm:max-w-44">
+            {match.homeTeam.name}
           </span>
         </div>
 
@@ -100,8 +100,8 @@ export function ScoreDisplay({ match, sportConfig = FOOTBALL_CONFIG }: ScoreDisp
               className="object-contain p-1"
             />
           </div>
-          <span className="mt-2 text-sm font-semibold text-white">
-            {match.awayTeam.shortName || match.awayTeam.name}
+          <span className="mt-2 max-w-32 truncate text-center text-sm font-semibold text-white sm:max-w-44">
+            {match.awayTeam.name}
           </span>
         </div>
       </div>
