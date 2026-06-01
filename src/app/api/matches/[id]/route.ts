@@ -35,9 +35,10 @@ export async function GET(
           halftime: { home: number; away: number }
         }
         events: Array<{
-          time: number
+          time: number | { elapsed?: number | null; extra?: number | null }
           team: { id: number }
           type: string
+          detail?: string | null
           player: { name: string }
           assist: { name: string }
           comment: string
@@ -79,8 +80,9 @@ export async function GET(
         ht: f.score?.halftime,
       },
       events: (f.events || []).map(e => ({
-        id: String(e.time),
+        id: String(typeof e.time === 'number' ? e.time : e.time?.elapsed ?? ''),
         type: e.type,
+        detail: e.detail,
         time: e.time,
         player: e.player,
         team: e.team,

@@ -38,6 +38,7 @@ const defaultEventIcons: Record<MatchEventType, { icon: string; color: string }>
   tko: { icon: '🥊', color: '#ef4444' },
   decision: { icon: '⚖️', color: '#3b82f6' },
   round: { icon: '🔴', color: '#3b82f6' },
+  unknown: { icon: '•', color: '#666' },
 }
 
 function EventItem({ event, sportConfig }: { event: MatchEvent; sportConfig: SportConfig }) {

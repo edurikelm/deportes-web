@@ -130,4 +130,49 @@ describe('ScoreDisplay', () => {
 
     expect(screen.getByText('Finalizado')).toBeDefined()
   })
+
+  it('renders goal scorers with object-shaped legacy minutes', () => {
+    render(
+      <ScoreDisplay
+        match={{
+          ...footballMatch,
+          status: 'finished',
+          events: [
+            {
+              type: 'goal',
+              minute: { elapsed: 45, extra: 2 } as unknown as number,
+              player: 'Fernando Santos',
+              team: 'home',
+            },
+          ],
+        }}
+        sportConfig={FOOTBALL_CONFIG}
+      />,
+    )
+
+    expect(screen.getByText("Fernando Santos 47'")).toBeDefined()
+  })
+
+  it('renders multiple goal scorers on separate non-truncated lines', () => {
+    render(
+      <ScoreDisplay
+        match={{
+          ...footballMatch,
+          status: 'finished',
+          events: [
+            { type: 'goal', minute: 18, player: 'Fernando Santos', team: 'home' },
+            { type: 'goal', minute: 45, player: 'Gustavo', team: 'home' },
+          ],
+        }}
+        sportConfig={FOOTBALL_CONFIG}
+      />,
+    )
+
+    const firstScorer = screen.getByText("Fernando Santos 18'")
+    const secondScorer = screen.getByText("Gustavo 45'")
+
+    expect(firstScorer).toBeDefined()
+    expect(secondScorer).toBeDefined()
+    expect(firstScorer.parentElement?.className).not.toContain('truncate')
+  })
 })

@@ -61,7 +61,6 @@ export function SportPage({ sport }: SportPageProps) {
       {searchOpen ? (
         <InlineSearch
           matches={allMatches}
-          sport={sport}
           onClose={() => setSearchOpen(false)}
         />
       ) : loading ? (

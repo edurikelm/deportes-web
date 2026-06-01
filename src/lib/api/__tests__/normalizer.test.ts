@@ -92,6 +92,22 @@ describe('normalizeMatch', () => {
     expect(types).toContain('subst')
   })
 
+  it('does not normalize API-Football cards and substitutions as goals', () => {
+    const raw = makeRaw({
+      status: { code: 'FT', description: 'Match Finished' },
+      score: { home: 1, away: 0 },
+      events: [
+        { id: 'e1', type: 'Goal', detail: 'Normal Goal', time: { elapsed: 18, extra: null }, player: { name: 'Fernando Santos' }, team: { id: 10 }, comment: '' },
+        { id: 'e2', type: 'subst', detail: 'Substitution 1', time: { elapsed: 23, extra: null }, player: { name: 'Gustavo Marques' }, team: { id: 10 }, comment: '' },
+        { id: 'e3', type: 'Card', detail: 'Yellow Card', time: { elapsed: 52, extra: null }, player: { name: 'Juninho Capixaba' }, team: { id: 10 }, comment: '' },
+      ],
+    })
+
+    const result = normalizeMatch(raw)
+
+    expect(result.events.map(e => e.type)).toEqual(['goal', 'subst', 'yellow_card'])
+  })
+
   it('normalizes stream links: tv stays tv, anything else becomes stream', () => {
     const raw = makeRaw({
       status: { code: 'FT', description: 'Match Finished' },
@@ -118,5 +134,19 @@ describe('normalizeMatch', () => {
     })
     const result = normalizeMatch(raw)
     expect(result.events[0].team).toBe('away')
+  })
+
+  it('normalizes event time objects into numeric minutes', () => {
+    const raw = makeRaw({
+      status: { code: 'FT', description: 'Match Finished' },
+      score: { home: 1, away: 0 },
+      events: [
+        { id: 'e1', type: 'goal', time: { elapsed: 45, extra: 2 }, player: { name: 'Saka' }, team: { id: 10 }, comment: '' },
+      ],
+    })
+
+    const result = normalizeMatch(raw)
+
+    expect(result.events[0].minute).toBe(47)
   })
 })

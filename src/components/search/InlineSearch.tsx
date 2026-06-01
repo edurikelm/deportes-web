@@ -1,17 +1,16 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import type { Match, Sport } from '@/lib/types'
+import type { Match } from '@/lib/types'
 import { MatchRow } from '@/components/match/MatchRow'
 import { MatchClockProvider } from '@/components/match/MatchClockContext'
 
 interface InlineSearchProps {
   matches: Match[]
-  sport: Sport
   onClose: () => void
 }
 
-export function InlineSearch({ matches, sport, onClose }: InlineSearchProps) {
+export function InlineSearch({ matches, onClose }: InlineSearchProps) {
   const [query, setQuery] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -50,7 +49,7 @@ export function InlineSearch({ matches, sport, onClose }: InlineSearchProps) {
         {filtered.length > 0 && (
           <div>
             {filtered.map(m => (
-              <MatchRow key={m.id} match={m} sport={sport} />
+              <MatchRow key={m.id} match={m} />
             ))}
           </div>
         )}

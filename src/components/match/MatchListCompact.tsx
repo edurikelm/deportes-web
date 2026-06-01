@@ -144,7 +144,7 @@ export function MatchListCompact({
               onTogglePin={() => togglePin(group.league.id)}
             />
             {group.matches.map(match => (
-              <MatchRow key={match.id} match={match} sport={sport} />
+              <MatchRow key={match.id} match={match} />
             ))}
           </div>
         ))

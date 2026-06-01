@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import type { Match, SportConfig } from '@/lib/types'
+import type { Match, MatchEvent, SportConfig } from '@/lib/types'
 import { FOOTBALL_CONFIG } from '@/lib/types'
 import { useMatchClock } from '@/hooks/useMatchClock'
 import { useMatchClockContext } from './MatchClockContext'
@@ -11,6 +11,35 @@ interface ScoreDisplayProps {
   sportConfig?: SportConfig
 }
 
+const GOAL_TYPES = new Set(['goal', 'own_goal', 'penalty'])
+
+function getPlayerName(player: unknown): string {
+  if (typeof player === 'string') return player
+  if (player && typeof player === 'object') {
+    const p = player as Record<string, unknown>
+    return (p.name || p.shortName || '') as string
+  }
+  return ''
+}
+
+function formatEventMinute(minute: unknown): string {
+  if (typeof minute === 'number') return `${minute}'`
+  if (minute && typeof minute === 'object') {
+    const m = minute as Record<string, unknown>
+    const elapsed = typeof m.elapsed === 'number' ? m.elapsed : 0
+    const extra = typeof m.extra === 'number' ? m.extra : 0
+    return `${elapsed + extra}'`
+  }
+  return ''
+}
+
+function getGoalScorers(events: MatchEvent[], team: 'home' | 'away'): string[] {
+  return events
+    .filter(e => GOAL_TYPES.has(e.type) && e.team === team && e.player)
+    .sort((a, b) => a.minute - b.minute)
+    .map(e => `${getPlayerName(e.player)} ${formatEventMinute(e.minute)}`.trim())
+}
+
 export function ScoreDisplay({ match, sportConfig = FOOTBALL_CONFIG }: ScoreDisplayProps) {
   const { lastFetchTimestamp } = useMatchClockContext()
   const clock = useMatchClock(match, lastFetchTimestamp)
@@ -18,6 +47,9 @@ export function ScoreDisplay({ match, sportConfig = FOOTBALL_CONFIG }: ScoreDisp
   const isFinished = match.status === 'finished'
   const isUpcoming = match.status === 'upcoming'
   const isBasketball = sportConfig.sport === 'basketball'
+
+  const homeScorers = getGoalScorers(match.events, 'home')
+  const awayScorers = getGoalScorers(match.events, 'away')
 
   return (
     <div className="flex flex-col items-center">
@@ -35,6 +67,15 @@ export function ScoreDisplay({ match, sportConfig = FOOTBALL_CONFIG }: ScoreDisp
           <span className="mt-2 max-w-32 truncate text-center text-sm font-semibold text-white sm:max-w-44">
             {match.homeTeam.name}
           </span>
+          {homeScorers.length > 0 && (
+            <div className="mt-1 max-w-32 space-y-0.5 text-center text-xs text-[#9a9a9a] sm:max-w-44">
+              {homeScorers.map((scorer) => (
+                <span key={scorer} className="block break-words">
+                  {scorer}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="flex flex-col items-center px-8">
@@ -103,6 +144,15 @@ export function ScoreDisplay({ match, sportConfig = FOOTBALL_CONFIG }: ScoreDisp
           <span className="mt-2 max-w-32 truncate text-center text-sm font-semibold text-white sm:max-w-44">
             {match.awayTeam.name}
           </span>
+          {awayScorers.length > 0 && (
+            <div className="mt-1 max-w-32 space-y-0.5 text-center text-xs text-[#9a9a9a] sm:max-w-44">
+              {awayScorers.map((scorer) => (
+                <span key={scorer} className="block break-words">
+                  {scorer}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

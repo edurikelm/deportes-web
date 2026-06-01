@@ -1,14 +1,14 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
-import { InlineSearch } from '../InlineSearch'
-import type { Match, Sport } from '@/lib/types'
+import React from 'react'
+import type { Match } from '@/lib/types'
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
 }))
 
 vi.mock('next/link', () => ({
-  default: ({ children, href, className, ...rest }: Record<string, unknown>) => (
+  default: ({ children, href, className, ...rest }: { children: React.ReactNode; href: string; className?: string }) => (
     <a href={href as string} className={className as string} {...rest}>{children}</a>
   ),
 }))
@@ -18,6 +18,17 @@ vi.mock('next/image', () => ({
     <img src={src as string} alt={alt as string} className={className as string} {...rest} />
   ),
 }))
+
+vi.mock('../../match/MatchClockContext', () => ({
+  MatchClockProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  useMatchClockContext: () => ({ lastFetchTimestamp: undefined }),
+}))
+
+vi.mock('@/hooks/useMatchClock', () => ({
+  useMatchClock: () => ({ formatted: '67\'', isDelayed: false, countdownMinutes: null }),
+}))
+
+import { InlineSearch } from '../InlineSearch'
 
 const baseMatch: Match = {
   id: '1',
@@ -47,10 +58,10 @@ const riverAwayMatch: Match = {
   awayTeam: { id: 'a3', name: 'River Plate', shortName: 'RIV', logo: '' },
 }
 
-function renderInlineSearch(matches: Match[] = [baseMatch], sport: Sport = 'football', onClose = vi.fn()) {
+function renderInlineSearch(matches: Match[] = [baseMatch], onClose = vi.fn()) {
   return {
     onClose,
-    ...render(<InlineSearch matches={matches} sport={sport} onClose={onClose} />),
+    ...render(<InlineSearch matches={matches} onClose={onClose} />),
   }
 }
 

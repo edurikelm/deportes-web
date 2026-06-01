@@ -31,7 +31,6 @@ export async function GET(
     ])
 
     const homeTeamId = fixtureData.data.response[0]?.teams?.home?.id
-    const awayTeamId = fixtureData.data.response[0]?.teams?.away?.id
 
     const events = eventsData.data.response.map((e) => ({
       id: `${e.time.elapsed}-${e.type}`,
@@ -63,6 +62,7 @@ function mapEventType(type: string, detail: string): string {
   if (type === 'Goal') {
     if (detail === 'Penalty') return 'penalty'
     if (detail === 'Own Goal') return 'own_goal'
+    if (detail === 'Missed Penalty') return 'missed_penalty'
     return 'goal'
   }
   if (type === 'Card') {
@@ -71,5 +71,5 @@ function mapEventType(type: string, detail: string): string {
     return 'yellow_card'
   }
   if (type === 'subst') return 'subst'
-  return 'goal'
+  return 'unknown'
 }

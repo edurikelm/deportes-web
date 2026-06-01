@@ -26,8 +26,8 @@ export interface ApiFootballMatch {
     elapsed?: number | null
   }
   score?: {
-    home: number
-    away: number
+    home: number | null
+    away: number | null
     ht?: {
       home: number
       away: number
@@ -36,7 +36,8 @@ export interface ApiFootballMatch {
   events?: Array<{
     id: string
     type: string
-    time: number
+    detail?: string | null
+    time?: number | { elapsed?: number | null; extra?: number | null } | null
     player?: {
       name: string
     }

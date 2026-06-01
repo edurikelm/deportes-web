@@ -19,7 +19,6 @@ export default function SearchPage() {
     <div className="min-h-screen bg-[#0a0a0a] p-6">
       <InlineSearch
         matches={allMatches}
-        sport="football"
         onClose={() => window.history.back()}
       />
     </div>

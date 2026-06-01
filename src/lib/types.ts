@@ -32,6 +32,7 @@ export type MatchEventType =
   | 'tko'
   | 'decision'
   | 'round'
+  | 'unknown'
 
 export interface SportConfig {
   sport: Sport
@@ -151,6 +152,7 @@ export const FOOTBALL_CONFIG: SportConfig = {
     tko: '',
     decision: '',
     round: '',
+    unknown: '',
   },
   eventLabels: {
     goal: 'Gol',
@@ -182,6 +184,7 @@ export const FOOTBALL_CONFIG: SportConfig = {
     tko: '',
     decision: '',
     round: '',
+    unknown: 'Evento',
   },
   scoreLabel: 'Marcador',
   periodLabel: 'Tiempo',
@@ -220,6 +223,7 @@ export const BASKETBALL_CONFIG: SportConfig = {
     tko: '',
     decision: '',
     round: '',
+    unknown: '',
   },
   eventLabels: {
     goal: 'Canasta',
@@ -251,6 +255,7 @@ export const BASKETBALL_CONFIG: SportConfig = {
     tko: '',
     decision: '',
     round: '',
+    unknown: 'Evento',
   },
   scoreLabel: 'Puntos',
   periodLabel: 'Cuarto',
@@ -289,6 +294,7 @@ export const MMA_CONFIG: SportConfig = {
     tko: '🥊',
     decision: '⚖️',
     round: '🔴',
+    unknown: '',
   },
   eventLabels: {
     goal: '',
@@ -320,6 +326,7 @@ export const MMA_CONFIG: SportConfig = {
     tko: 'TKO',
     decision: 'Decisión',
     round: 'Round',
+    unknown: 'Evento',
   },
   scoreLabel: 'Resultado',
   periodLabel: 'Round',

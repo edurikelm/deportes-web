@@ -1,6 +1,8 @@
 import type { Match, MatchEvent, Sport, StreamLink } from '@/lib/types'
 import type { ApiFootballMatch } from './types'
 
+type ApiFootballEventTime = NonNullable<ApiFootballMatch['events']>[number]['time']
+
 export function normalizeMatch(raw: ApiFootballMatch, sport: Sport = 'football'): Match {
   let status = mapStatus(raw.status.code)
 
@@ -81,8 +83,8 @@ function mapStatus(code: string): Match['status'] {
 }
 function normalizeEvents(events: ApiFootballMatch['events'], homeTeamId?: number, awayTeamId?: number): MatchEvent[] {
   return (events || []).map((e) => ({
-    type: mapEventType(e.type),
-    minute: e.time,
+    type: mapEventType(e.type, e.detail),
+    minute: normalizeEventMinute(e.time),
     player: e.player?.name,
     team: e.team?.id === awayTeamId ? 'away' : 'home',
     assist: e.assist?.name,
@@ -90,17 +92,37 @@ function normalizeEvents(events: ApiFootballMatch['events'], homeTeamId?: number
   }))
 }
 
-function mapEventType(type: string): MatchEvent['type'] {
-  const map: Record<string, MatchEvent['type']> = {
-    goal: 'goal',
-    own_goal: 'own_goal',
-    penalty: 'penalty',
-    missed_penalty: 'missed_penalty',
-    yellow_card: 'yellow_card',
-    red_card: 'red_card',
-    substitution: 'subst',
+function normalizeEventMinute(time: ApiFootballEventTime): number {
+  if (typeof time === 'number') return time
+  if (!time) return 0
+  return (time.elapsed ?? 0) + (time.extra ?? 0)
+}
+
+function mapEventType(type: string, detail?: string | null): MatchEvent['type'] {
+  const normalizedType = type.toLowerCase()
+  const normalizedDetail = detail?.toLowerCase()
+
+  if (normalizedType === 'own_goal') return 'own_goal'
+  if (normalizedType === 'penalty') return 'penalty'
+  if (normalizedType === 'missed_penalty') return 'missed_penalty'
+  if (normalizedType === 'yellow_card') return 'yellow_card'
+  if (normalizedType === 'red_card') return 'red_card'
+
+  if (normalizedType === 'goal') {
+    if (normalizedDetail === 'penalty') return 'penalty'
+    if (normalizedDetail === 'own goal') return 'own_goal'
+    if (normalizedDetail === 'missed penalty') return 'missed_penalty'
+    return 'goal'
   }
-  return map[type] || 'goal'
+
+  if (normalizedType === 'card') {
+    if (normalizedDetail === 'red card') return 'red_card'
+    return 'yellow_card'
+  }
+
+  if (normalizedType === 'subst' || normalizedType === 'substitution') return 'subst'
+
+  return 'unknown'
 }
 
 function normalizeStreamLinks(links: ApiFootballMatch['streamLinks']): StreamLink[] {
