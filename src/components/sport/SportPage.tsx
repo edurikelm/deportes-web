@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react'
 import type { Match, Sport } from '@/lib/types'
 import { SPORT_PAGE_CONFIGS } from '@/lib/sportPageConfig'
-import { MatchListCompact, type DateOption } from '@/components/match/MatchListCompact'
+import { MatchListCompact, getTodayDateKey, type MatchDateKey } from '@/components/match/MatchListCompact'
 import { MatchListSkeleton } from '@/components/match/MatchCardSkeleton'
 import { InlineSearch } from '@/components/search/InlineSearch'
 import { useMatchPolling } from '@/hooks/useMatchPolling'
@@ -18,27 +18,12 @@ export function SportPage({ sport }: SportPageProps) {
   const [allMatches, setAllMatches] = useState<Match[]>([])
   const [loading, setLoading] = useState(true)
   const [searchOpen, setSearchOpen] = useState(false)
-  const [activeDate, setActiveDate] = useState<DateOption>('today')
-  const [includeAllLeagues, setIncludeAllLeagues] = useState(false)
-
-  const getDateForOption = useCallback((option: DateOption) => {
-    const date = new Date()
-    if (option === 'yesterday') date.setDate(date.getDate() - 1)
-    if (option === 'tomorrow') date.setDate(date.getDate() + 1)
-
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-    return `${year}-${month}-${day}`
-  }, [])
+  const [activeDate, setActiveDate] = useState<MatchDateKey>(() => getTodayDateKey())
 
   const fetchMatches = useCallback(async () => {
     try {
       const apiUrl = new URL(config.apiEndpoint, window.location.origin)
-      apiUrl.searchParams.set('date', getDateForOption(activeDate))
-      if (includeAllLeagues) {
-        apiUrl.searchParams.set('important', 'false')
-      }
+      apiUrl.searchParams.set('date', activeDate)
       const res = await fetch(apiUrl.toString())
       const data = await res.json()
       setAllMatches(data.matches || [])
@@ -47,13 +32,13 @@ export function SportPage({ sport }: SportPageProps) {
     } finally {
       setLoading(false)
     }
-  }, [config.apiEndpoint, sport, activeDate, includeAllLeagues, getDateForOption])
+  }, [config.apiEndpoint, sport, activeDate])
 
   const { lastUpdated } = useMatchPolling({
     onFetch: fetchMatches,
     interval: 30000,
     enabled: true,
-    refreshKey: `${activeDate}-${includeAllLeagues}`,
+    refreshKey: activeDate,
   })
 
   return (
@@ -74,8 +59,6 @@ export function SportPage({ sport }: SportPageProps) {
             sport={sport}
             activeDate={activeDate}
             onDateChange={setActiveDate}
-            includeAllLeagues={includeAllLeagues}
-            onToggleAllLeagues={() => setIncludeAllLeagues((prev) => !prev)}
           />
         </MatchClockProvider>
       )}

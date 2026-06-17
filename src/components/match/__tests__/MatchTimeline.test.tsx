@@ -1,10 +1,18 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MatchTimeline } from '../MatchTimeline'
 import { FOOTBALL_CONFIG, BASKETBALL_CONFIG, MMA_CONFIG } from '@/lib/types'
 import type { MatchEvent } from '@/lib/types'
 
+const mockFetch = vi.fn()
+vi.stubGlobal('fetch', mockFetch)
+
 describe('MatchTimeline', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockFetch.mockReset()
+  })
+
   it('groups football events into first half / second half', () => {
     const events: MatchEvent[] = [
       { type: 'goal', minute: 23, player: 'Saka', team: 'home' },
@@ -53,5 +61,33 @@ describe('MatchTimeline', () => {
     expect(screen.getByText('Sumisión')).toBeDefined()
     expect(screen.getByText('Pereira')).toBeDefined()
     expect(screen.getByText('Oliveira')).toBeDefined()
+  })
+
+  it('renders event icons as non-interactive timeline markers', () => {
+    const events: MatchEvent[] = [
+      { type: 'goal', minute: 23, player: 'Saka', team: 'home', assist: 'Ødegaard', comment: 'Remate cruzado' },
+    ]
+    render(<MatchTimeline events={events} sportConfig={FOOTBALL_CONFIG} />)
+
+    expect(screen.queryByLabelText('Ver jugada destacada: Gol minuto 23')).toBeNull()
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(screen.getByText('Gol')).toBeDefined()
+    expect(screen.getByText('Saka')).toBeDefined()
+    expect(screen.getByText(/Ødegaard/)).toBeDefined()
+  })
+
+  it('does not fetch highlight video from timeline events', () => {
+    const events: MatchEvent[] = [
+      { type: 'goal', minute: 23, player: 'Saka', team: 'home', assist: 'Ødegaard' },
+    ]
+
+    render(
+      <MatchTimeline
+        events={events}
+        sportConfig={FOOTBALL_CONFIG}
+      />
+    )
+
+    expect(mockFetch).not.toHaveBeenCalled()
   })
 })

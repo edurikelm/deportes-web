@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Radio } from 'lucide-react'
 import { Match } from '@/lib/types'
-import { MatchListCompact, type DateOption } from '@/components/match/MatchListCompact'
+import { MatchListCompact, getTodayDateKey, type MatchDateKey } from '@/components/match/MatchListCompact'
 import { MatchListSkeleton } from '@/components/match/MatchCardSkeleton'
 import { MatchClockProvider } from '@/components/match/MatchClockContext'
 import { useMatchPolling } from '@/hooks/useMatchPolling'
@@ -12,8 +12,7 @@ export default function LivePage() {
   const [allMatches, setAllMatches] = useState<Match[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [activeDate, setActiveDate] = useState<DateOption>('today')
-  const [includeAllLeagues, setIncludeAllLeagues] = useState(false)
+  const [activeDate, setActiveDate] = useState<MatchDateKey>(() => getTodayDateKey())
 
   const fetchMatches = useCallback(async () => {
     try {
@@ -84,8 +83,6 @@ export default function LivePage() {
             sport="football"
             activeDate={activeDate}
             onDateChange={setActiveDate}
-            includeAllLeagues={includeAllLeagues}
-            onToggleAllLeagues={() => setIncludeAllLeagues((prev) => !prev)}
           />
         </MatchClockProvider>
       )}

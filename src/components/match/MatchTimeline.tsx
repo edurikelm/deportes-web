@@ -41,10 +41,19 @@ const defaultEventIcons: Record<MatchEventType, { icon: string; color: string }>
   unknown: { icon: '•', color: '#666' },
 }
 
-function EventItem({ event, sportConfig }: { event: MatchEvent; sportConfig: SportConfig }) {
-  const eventInfo = sportConfig.eventIcons[event.type]
+function getEventInfo(event: MatchEvent, sportConfig: SportConfig) {
+  return sportConfig.eventIcons[event.type]
     ? { icon: sportConfig.eventIcons[event.type], color: defaultEventIcons[event.type]?.color || '#22c55e' }
     : defaultEventIcons[event.type]
+}
+
+function getEventLabel(event: MatchEvent, sportConfig: SportConfig) {
+  return sportConfig.eventLabels[event.type] || event.type
+}
+
+function EventItem({ event, sportConfig }: { event: MatchEvent; sportConfig: SportConfig }) {
+  const eventInfo = getEventInfo(event, sportConfig)
+  const eventLabel = getEventLabel(event, sportConfig)
   const isHomeEvent = event.team === 'home'
 
   return (
@@ -52,6 +61,7 @@ function EventItem({ event, sportConfig }: { event: MatchEvent; sportConfig: Spo
       <div
         className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
         style={{ backgroundColor: `${eventInfo.color}20` }}
+        aria-hidden="true"
       >
         <span className="text-lg">{eventInfo.icon}</span>
       </div>
@@ -59,7 +69,7 @@ function EventItem({ event, sportConfig }: { event: MatchEvent; sportConfig: Spo
       <div className={`flex flex-1 flex-col ${isHomeEvent ? 'items-start' : 'items-end'}`}>
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold text-white">
-            {sportConfig.eventLabels[event.type] || event.type}
+            {eventLabel}
           </span>
           <span className="rounded bg-[#262626] px-1.5 py-0.5 text-xs font-mono text-[#a1a1a1]">
             {event.minute}&apos;

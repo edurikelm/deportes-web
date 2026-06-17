@@ -10,14 +10,26 @@ vi.mock('next/navigation', () => ({
 }))
 
 vi.mock('next/link', () => ({
-  default: ({ children, href, className, ...rest }: Record<string, any>) => (
+  default: ({
+    children,
+    href,
+    className,
+    ...rest
+  }: Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, 'href'> & {
+    children: React.ReactNode
+    href: string
+  }) => (
     <a href={href} className={className} {...rest}>{children}</a>
   ),
 }))
 
 vi.mock('next/image', () => ({
-  default: ({ src, alt, className, ...rest }: Record<string, any>) => (
-    <img src={src} alt={alt} className={className} {...rest} />
+  default: ({
+    src,
+    alt,
+    className,
+  }: React.ImgHTMLAttributes<HTMLImageElement> & { fill?: boolean }) => (
+    <img src={src} alt={alt} className={className} />
   ),
 }))
 
@@ -66,16 +78,14 @@ const laligaMatch: Match = {
   streamLinks: [],
 }
 
-function renderMatchListCompact(matches: Match[], sport: Sport) {
+function renderMatchListCompact(matches: Match[], sport: Sport, onDateChange = vi.fn()) {
   return render(
     <MatchClockProvider lastFetchTimestamp={undefined}>
       <MatchListCompact
         matches={matches}
         sport={sport}
-        activeDate="today"
-        onDateChange={vi.fn()}
-        includeAllLeagues={false}
-        onToggleAllLeagues={vi.fn()}
+        activeDate="2026-06-07"
+        onDateChange={onDateChange}
       />
     </MatchClockProvider>
   )
@@ -92,7 +102,7 @@ describe('MatchListCompact', () => {
 
   it('groups matches by league', () => {
     const { container } = renderMatchListCompact([plMatch, plMatch2, laligaMatch], 'football')
-    expect(container.firstElementChild?.className).toContain('max-w-5xl')
+    expect(container.firstElementChild?.className).toContain('max-w-6xl')
     expect(screen.getByText('Premier League')).toBeDefined()
     expect(screen.getByText('La Liga')).toBeDefined()
   })
@@ -110,20 +120,29 @@ describe('MatchListCompact', () => {
     expect(headers[1].textContent).toContain('Premier League')
   })
 
-  it('renders DatePills bar with Hoy selected by default', () => {
+  it('renders the date navigator', () => {
     renderMatchListCompact([plMatch], 'football')
-    const hoy = screen.getByText('Hoy')
-    expect(hoy).toBeDefined()
-    expect(screen.getByText('Ayer')).toBeDefined()
-    expect(screen.getByText('Mañana')).toBeDefined()
+    expect(screen.getByText('07/06 DO')).toBeDefined()
+    expect(screen.getByLabelText('Fecha anterior')).toBeDefined()
+    expect(screen.getByLabelText('Fecha siguiente')).toBeDefined()
   })
 
-  it('renders StatusFilters with all options', () => {
+  it('moves date backward and forward', () => {
+    const onDateChange = vi.fn()
+    renderMatchListCompact([plMatch], 'football', onDateChange)
+    fireEvent.click(screen.getByLabelText('Fecha anterior'))
+    expect(onDateChange).toHaveBeenCalledWith('2026-06-06')
+    fireEvent.click(screen.getByLabelText('Fecha siguiente'))
+    expect(onDateChange).toHaveBeenCalledWith('2026-06-08')
+  })
+
+  it('renders StatusFilters without odds', () => {
     renderMatchListCompact([plMatch], 'football')
-    expect(screen.getByText('Todos')).toBeDefined()
-    expect(screen.getByText('En vivo')).toBeDefined()
-    expect(screen.getByText('Próximos')).toBeDefined()
-    expect(screen.getByText('Finalizados')).toBeDefined()
+    expect(screen.getByText('TODOS')).toBeDefined()
+    expect(screen.getByText('EN DIRECTO')).toBeDefined()
+    expect(screen.getByText('PRÓXIMOS')).toBeDefined()
+    expect(screen.getByText('FINALIZADOS')).toBeDefined()
+    expect(screen.queryByText('CUOTAS')).toBeNull()
   })
 
   it('renders MatchRow for each match', () => {
@@ -134,16 +153,16 @@ describe('MatchListCompact', () => {
 
   it('filters matches by status when filter pill is clicked', () => {
     renderMatchListCompact([plMatch, plMatch2], 'football')
-    fireEvent.click(screen.getByText('En vivo'))
+    fireEvent.click(screen.getByText('EN DIRECTO'))
     expect(screen.getByText('Arsenal')).toBeDefined()
     expect(screen.queryByText('Liverpool')).toBeNull()
-    fireEvent.click(screen.getByText('Próximos'))
+    fireEvent.click(screen.getByText('PRÓXIMOS'))
     expect(screen.getByText('Liverpool')).toBeDefined()
   })
 
-  it('shows live count badge on En vivo filter', () => {
+  it('shows live count badge on EN DIRECTO filter', () => {
     renderMatchListCompact([plMatch, plMatch2, laligaMatch], 'football')
-    const enVivo = screen.getByText('En vivo')
+    const enVivo = screen.getByText('EN DIRECTO')
     expect(enVivo.innerHTML).toContain('2')
   })
 
@@ -155,7 +174,7 @@ describe('MatchListCompact', () => {
       score: undefined,
     }
     renderMatchListCompact([upcoming], 'football')
-    fireEvent.click(screen.getByText('Finalizados'))
+    fireEvent.click(screen.getByText('FINALIZADOS'))
     expect(screen.getByText('Sin partidos hoy')).toBeDefined()
   })
 })

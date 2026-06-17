@@ -77,6 +77,8 @@ export interface MatchEvent {
   team?: 'home' | 'away'
   assist?: string
   comment?: string
+  videoUrl?: string
+  videoThumbnail?: string
   extra?: Record<string, unknown>
 }
 

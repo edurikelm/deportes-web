@@ -15,7 +15,7 @@ Competencia footballística (Premier League, La Liga, etc). Tiene `id`, `name`, 
 Liga que el usuario ancla para que aparezca primero en el listado. Se persiste en `localStorage` (sin backend, sin auth). El pinning es por navegador — no sincroniza entre dispositivos. Una liga fijada siempre aparece arriba de las no fijadas, separada por un divider visual.
 
 ### MatchEvent (Evento de Partido)
-Gol, tarjeta amarilla/roja, penal, sustitución para fútbol. Para otros deportes, campos opcionales genéricos (`extra?: Record<string, unknown>`) permiten flexibilidad. Tipo, minuto, jugador, equipo. No todos los partidos tienen eventos — campo opcional.
+Gol, tarjeta amarilla/roja, penal, sustitución para fútbol. El campo `detail` propaga subtipos (Penalty, Own Goal, Missed Penalty, Yellow Card, Red Card). Tipos desconocidos mapean a `'unknown'` — **no** caen a `'goal'` para evitar falsos goleadores. Para otros deportes, campos opcionales genéricos (`extra?: Record<string, unknown>`) permiten flexibilidad. Tipo, minuto, jugador, equipo. No todos los partidos tienen eventos — campo opcional.
 
 ### StreamLink (Link de Streaming)
 Canal de TV o plataforma de streaming donde transmite el partido. Tipo: `tv` | `stream`. Nombre: "ESPN", "Star+", "Canal+". Deben resolverse por país del espectador — hoy hardcodeado a Chile.
@@ -73,14 +73,14 @@ Pills secundarias debajo de DatePills: "Todos", "En vivo" (con badge rojo de con
 ### MatchRow (Fila de Partido)
 Reemplaza a `MatchCard`. Formato compacto de dos líneas por partido. Layout horizontal:
 - **Línea 1:** Indicador de estado (⚫/✓/⏰), minuto/hora, logo chico 24px, nombre local, **score en monospace bold**, nombre visita, logo chico 24px.
-- **Línea 2 (opcional, texto gris `#a1a1a1`):** Info específica por deporte — fútbol: "HT: 1-0 · ESPN · Star+", básquet: "Q1: 24-18 · Q2: 30-22 · NBA TV", MMA: "KO R2 3:15". Se oculta si no hay datos.
+- **Línea 2 opcional:** Goleadores (`goal | own_goal | penalty`) debajo de cada equipo en líneas separadas sin truncar. Links de streaming aparecen centrados columna del score si no hay goleadores. No se renderiza info deportiva genérica (FT, HT, quarters, método MMA).
 - Separación entre filas: borde inferior fino `#262626`. Sin fondo de card.
 
 ### SectionHeader (Encabezado de Liga)
 Agrupa MatchRows por league. Barra de acento izquierda de 2px con el color de la liga, nombre de la liga + país, e ícono de pin 📌 a la derecha (si está fijada). Sin fondo de card.
 
 ### MatchDetail (Detalle de Partido)
-Página `/match/[id]`. Mantiene el diseño actual (ScoreDisplay grande, MatchTimeline, StreamLinks) unificado con la nueva paleta. Sidebar visible en desktop.
+Página `/match/[id]`. ScoreDisplay grande con goleadores debajo de cada nombre de equipo (líneas separadas, sin truncar). MatchTimeline, StreamLinks. Sidebar visible en desktop.
 
 ### Búsqueda Inline
 La búsqueda se activa desde la Sidebar ("Buscar"). En vez de navegar a `/search`, abre un input en el área principal. Los resultados reemplazan el contenido actual como MatchRows filtrados. `/search` se mantiene como fallback.

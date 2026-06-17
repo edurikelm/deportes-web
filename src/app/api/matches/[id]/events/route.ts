@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { fetchWithCache } from '@/lib/api/client'
+import { MOCK_MATCHES } from '@/lib/mock-data'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,6 +19,13 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
+  const apiKey = process.env.API_FOOTBALL_API_KEY
+
+  if (!apiKey) {
+    const mockMatch = MOCK_MATCHES.find(m => m.id === id)
+    const events = mockMatch?.events || []
+    return NextResponse.json({ events, meta: { cached: false, cacheAge: 0 } })
+  }
 
   try {
     const [eventsUrl, fixtureUrl] = await Promise.all([

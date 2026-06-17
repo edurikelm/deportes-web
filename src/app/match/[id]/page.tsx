@@ -13,6 +13,13 @@ import { useMatchPolling } from '@/hooks/useMatchPolling'
 
 type MatchTab = 'summary' | 'timeline' | 'streams'
 
+interface SummaryVideoState {
+  videoUrl: string | null
+  title: string | null
+  isLoading: boolean
+  error: string | null
+}
+
 const TABS: Array<{ id: MatchTab; label: string }> = [
   { id: 'summary', label: 'Resumen' },
   { id: 'timeline', label: 'Cronologia' },
@@ -49,6 +56,96 @@ function PageSkeleton() {
   )
 }
 
+function MatchSummaryVideoModal({
+  homeTeam,
+  awayTeam,
+  video,
+  onClose,
+}: {
+  homeTeam: string
+  awayTeam: string
+  video: SummaryVideoState
+  onClose: () => void
+}) {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [onClose])
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4 py-8 backdrop-blur-sm"
+      role="presentation"
+      onClick={onClose}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="match-summary-title"
+        className="relative w-full max-w-2xl overflow-hidden rounded-2xl border border-[#2f2f2f] bg-[#101010] shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="absolute inset-x-0 top-0 h-1 bg-[#22c55e]" />
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute right-3 top-3 z-10 rounded-full border border-[#333] bg-black/40 px-2.5 py-1 text-sm text-[#a1a1a1] transition-colors hover:border-[#666] hover:text-white"
+          aria-label="Cerrar resumen del partido"
+        >
+          x
+        </button>
+
+        <div className="p-5 sm:p-6">
+          <p className="text-xs uppercase tracking-[0.22em] text-[#666]">Resumen del partido</p>
+          <h3 id="match-summary-title" className="mt-1 pr-10 text-xl font-bold text-white">
+            {homeTeam} vs {awayTeam}
+          </h3>
+
+          <div className="mt-5 overflow-hidden rounded-xl bg-black">
+            <div className="relative aspect-video w-full">
+              {video.isLoading ? (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-sm text-[#a1a1a1]">
+                  <div className="h-9 w-9 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+                  Buscando resumen confiable...
+                </div>
+              ) : video.videoUrl ? (
+                <iframe
+                  src={video.videoUrl}
+                  title={video.title || `Resumen ${homeTeam} vs ${awayTeam}`}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="absolute inset-0 h-full w-full"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
+                  <p className="text-base font-semibold text-white">Resumen no disponible</p>
+                  <p className="mt-2 max-w-md text-sm leading-relaxed text-[#a1a1a1]">
+                    No encontramos un video suficientemente confiable para este partido.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {!video.isLoading && video.error && (
+            <p className="mt-4 rounded-lg border border-[#3f1f1f] bg-[#1a0f0f] px-4 py-3 text-sm text-[#fca5a5]">
+              {video.error}
+            </p>
+          )}
+          {!video.isLoading && video.title && (
+            <p className="mt-4 text-sm text-[#a1a1a1]">{video.title}</p>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function MatchDetailPage() {
   const params = useParams()
   const router = useRouter()
@@ -56,6 +153,13 @@ export default function MatchDetailPage() {
   const [events, setEvents] = useState<MatchEvent[]>([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<MatchTab>('summary')
+  const [isSummaryVideoOpen, setIsSummaryVideoOpen] = useState(false)
+  const [summaryVideo, setSummaryVideo] = useState<SummaryVideoState>({
+    videoUrl: null,
+    title: null,
+    isLoading: false,
+    error: null,
+  })
 
   const matchId = params.id as string
 
@@ -72,15 +176,18 @@ export default function MatchDetailPage() {
 
   useEffect(() => {
     if (!matchId) return
+
+    const fallbackEvents = match?.events || []
+
     fetch(`/api/matches/${matchId}/events`)
       .then((res) => res.json())
       .then((data) => {
-        setEvents(data.events || [])
+        setEvents(data.events?.length ? data.events : fallbackEvents)
       })
       .catch(() => {
-        // events are non-critical
+        setEvents(fallbackEvents)
       })
-  }, [matchId])
+  }, [matchId, match?.events])
 
   const handleShare = async () => {
     const url = window.location.href
@@ -96,6 +203,44 @@ export default function MatchDetailPage() {
       }
     } else {
       await navigator.clipboard.writeText(url)
+    }
+  }
+
+  const handleOpenSummaryVideo = async () => {
+    if (!match) return
+
+    setIsSummaryVideoOpen(true)
+    setSummaryVideo({ videoUrl: null, title: null, isLoading: true, error: null })
+
+    try {
+      const params = new URLSearchParams({
+        matchId: match.id,
+        homeTeam: match.homeTeam.name,
+        awayTeam: match.awayTeam.name,
+        startTime: match.startTime,
+        leagueName: match.league.name,
+        leagueCountry: match.league.country,
+      })
+      const res = await fetch(`/api/highlights?${params}`)
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || 'No se pudo buscar el resumen')
+      }
+
+      setSummaryVideo({
+        videoUrl: data.videoUrl || null,
+        title: data.title || null,
+        isLoading: false,
+        error: null,
+      })
+    } catch {
+      setSummaryVideo({
+        videoUrl: null,
+        title: null,
+        isLoading: false,
+        error: 'No se pudo cargar el resumen del partido.',
+      })
     }
   }
 
@@ -252,6 +397,19 @@ export default function MatchDetailPage() {
                   {match.streamLinks[0]?.name || 'Sin links disponibles'}
                 </p>
               </div>
+              <button
+                type="button"
+                onClick={handleOpenSummaryVideo}
+                className="group flex items-center justify-between rounded-lg border border-[#22c55e]/40 bg-[#102016] px-4 py-4 text-left transition-colors hover:border-[#22c55e] hover:bg-[#13281b] sm:col-span-2"
+              >
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-[#22c55e]">Video</p>
+                  <p className="mt-1 text-sm font-semibold text-white">Ver resumen del partido</p>
+                </div>
+                <span className="rounded-full bg-[#22c55e] px-3 py-1 text-xs font-bold text-black transition-transform group-hover:translate-x-0.5">
+                  Abrir
+                </span>
+              </button>
             </div>
           </div>
         )}
@@ -262,7 +420,9 @@ export default function MatchDetailPage() {
               <h2 className="text-lg font-semibold text-white">Cronologia</h2>
             </div>
             <div className="p-6">
-              <MatchTimeline events={events} />
+              <MatchTimeline
+                events={events}
+              />
             </div>
           </div>
         )}
@@ -276,6 +436,14 @@ export default function MatchDetailPage() {
               <StreamLinks links={match.streamLinks} />
             </div>
           </div>
+        )}
+        {isSummaryVideoOpen && (
+          <MatchSummaryVideoModal
+            homeTeam={match.homeTeam.name}
+            awayTeam={match.awayTeam.name}
+            video={summaryVideo}
+            onClose={() => setIsSummaryVideoOpen(false)}
+          />
         )}
       </div>
     </div>
