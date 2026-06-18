@@ -65,7 +65,10 @@ Sidebar colapsada que se abre con ícono hamburger en mobile y tablet (`<1024px`
 Barra fija minimalista (48px). Izquierda: logo "LiveScores". Derecha: íconos de búsqueda y settings. Sin pills de deporte, sin links de navegación — esa función la cumple la Sidebar.
 
 ### DatePills (Píldoras de Fecha)
-Barra horizontal scrolleable con tabs: "Hoy" (seleccionado, acento verde `#22c55e`), "Ayer", "Mañana", ícono de calendario. Filtra los partidos por fecha. Arriba del contenido principal.
+Barra horizontal scrolleable con tabs: "Hoy" (seleccionado, acento verde `#22c55e`), "Ayer", "Mañana", ícono de calendario. Filtra los partidos por fecha local del visitante. Arriba del contenido principal.
+
+### Visitor Time Zone (Zona Horaria del Visitante)
+Zona horaria IANA detectada en el navegador con `Intl.DateTimeFormat().resolvedOptions().timeZone`. Es la fuente de verdad para interpretar "hoy", la fecha seleccionada y qué partidos pertenecen al día visible. La app no debe asumir UTC ni Chile fijo para cargar listados diarios; `America/Santiago` solo es un ejemplo de visitante ubicado en Chile.
 
 ### StatusFilters (Filtros de Estado)
 Pills secundarias debajo de DatePills: "Todos", "En vivo" (con badge rojo de conteo), "Próximos", "Finalizados". Filtran partidos por `MatchStatus`.
@@ -104,7 +107,10 @@ Campo explícito en Match: `'football' | 'basketball' | 'mma'`. Cada deporte se 
 Módulo de página único parametrizado por `Sport`. Unifica tabs, polling, skeleton, y búsqueda que antes estaban duplicados 3x. Cada ruta es un wrapper fino que pasa el identificador de deporte.
 
 ### SportDataAdapter
-Interfaz que abstrae el fetching de partidos por deporte: `fetchFixtures(date, isLive) => Promise<Match[]>`. Cada deporte implementa su adapter (football → API-Football v3, basketball → NBA API, MMA → MMA API). La API route delega al adapter según `?sport=` — un solo endpoint en vez de tres.
+Interfaz que abstrae el fetching de partidos por deporte: `fetchFixtures({ date, isLive, timeZone? }) => Promise<Match[]>`. Cada deporte implementa su adapter (football → API-Football v3, basketball → NBA API, MMA → MMA API). La API route delega al adapter según `?sport=` — un solo endpoint en vez de tres.
+
+### All-Sports API
+El endpoint `/api/matches` acepta `sport=all` para consultar todos los deportes en paralelo. Usa `Promise.allSettled` internamente: si falla un deporte, los resultados de los demás se retornan igual. Si fallan todos, la respuesta es `500`. La página `/live` usa `sport=all` para mostrar un feed unificado.
 
 ### Cache compartido
 `fetchWithCache` vive en un módulo único. Los adapters lo importan con un `serviceName` para diferenciar logs. TTL: live=10s, normal=60s, eventos=120s. Fallback a cache stale en 429.
@@ -117,5 +123,6 @@ Interfaz que abstrae el fetching de partidos por deporte: `fetchFixtures(date, i
 - **Polling:** 30s en vistas live, pausa en upcoming tab, pausa cuando tab oculta (Page Visibility API), no si hay error anterior pendiente
 - **Error handling:** 429 → retorna cache stale si existe; si no, error que se propaga a la UI
 - **Página unificada por parámetro:** Una sola lógica de tabs/search/polling/skeleton, el deporte es un parámetro de configuración
+- **Fecha diaria por visitante:** Los listados de partidos se consultan y filtran por la fecha local en la zona horaria IANA del visitante. El backend recibe `date` + `timezone`; si el proveedor externo no soporta timezone de forma confiable, el adapter debe cubrir bordes UTC consultando fechas vecinas y filtrando por `startTime` en la zona del visitante.
 - **Design:** Dark mode por defecto, paleta por league. Layout Flashscore-style: sidebar fija en desktop, drawer en mobile, filas compactas sin cards, ligas pineables vía localStorage, búsqueda inline en área principal.
 - **Transiciones:** Solo CSS (Tailwind `transition-*`). Sin framer-motion. Slide-in del drawer, crossfade de contenido, transition-colors en badges.

@@ -3,11 +3,12 @@
 import { useState, useCallback } from 'react'
 import type { Match, Sport } from '@/lib/types'
 import { SPORT_PAGE_CONFIGS } from '@/lib/sportPageConfig'
-import { MatchListCompact, getTodayDateKey, type MatchDateKey } from '@/components/match/MatchListCompact'
+import { MatchListCompact, type MatchDateKey } from '@/components/match/MatchListCompact'
 import { MatchListSkeleton } from '@/components/match/MatchCardSkeleton'
 import { InlineSearch } from '@/components/search/InlineSearch'
 import { useMatchPolling } from '@/hooks/useMatchPolling'
 import { MatchClockProvider } from '@/components/match/MatchClockContext'
+import { getTodayDateKey } from '@/lib/date'
 
 interface SportPageProps {
   sport: Sport
@@ -18,12 +19,18 @@ export function SportPage({ sport }: SportPageProps) {
   const [allMatches, setAllMatches] = useState<Match[]>([])
   const [loading, setLoading] = useState(true)
   const [searchOpen, setSearchOpen] = useState(false)
-  const [activeDate, setActiveDate] = useState<MatchDateKey>(() => getTodayDateKey())
+
+  const timeZone = typeof window !== 'undefined'
+    ? Intl.DateTimeFormat().resolvedOptions().timeZone
+    : 'UTC'
+
+  const [activeDate, setActiveDate] = useState<MatchDateKey>(() => getTodayDateKey(timeZone))
 
   const fetchMatches = useCallback(async () => {
     try {
       const apiUrl = new URL(config.apiEndpoint, window.location.origin)
       apiUrl.searchParams.set('date', activeDate)
+      apiUrl.searchParams.set('timezone', timeZone)
       const res = await fetch(apiUrl.toString())
       const data = await res.json()
       setAllMatches(data.matches || [])
@@ -32,7 +39,7 @@ export function SportPage({ sport }: SportPageProps) {
     } finally {
       setLoading(false)
     }
-  }, [config.apiEndpoint, sport, activeDate])
+  }, [config.apiEndpoint, sport, activeDate, timeZone])
 
   const { lastUpdated } = useMatchPolling({
     onFetch: fetchMatches,

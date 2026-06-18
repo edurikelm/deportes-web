@@ -12,6 +12,61 @@ describe('FootballAdapter.fetchFixtures', () => {
     vi.stubEnv('API_SPORTS_KEY', 'test-key')
   })
 
+  it('appends timezone to URL when timeZone is provided', async () => {
+    const apiResponse = {
+      errors: [],
+      response: [
+        {
+          fixture: {
+            id: 1,
+            date: '2026-06-18T14:00:00Z',
+            status: { long: 'Not Started', short: 'NS', elapsed: null },
+          },
+          league: { id: 1, name: 'Primera División', country: 'Chile', logo: '' },
+          teams: {
+            home: { id: 10, name: 'Colo Colo', logo: '' },
+            away: { id: 20, name: 'U de Chile', logo: '' },
+          },
+          goals: {},
+          score: {},
+          events: [],
+        },
+      ],
+    }
+
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      json: () => Promise.resolve(apiResponse),
+    })
+
+    const adapter = new FootballAdapter()
+    await adapter.fetchFixtures({ date: '2026-06-18', isLive: false, timeZone: 'America/Santiago' })
+
+    const calledUrl = mockFetch.mock.calls[0][0]
+    expect(calledUrl).toContain('timezone=America%2FSantiago')
+    const parsed = new URL(calledUrl)
+    expect(parsed.searchParams.get('timezone')).toBe('America/Santiago')
+  })
+
+  it('does not append timezone when timeZone is not provided', async () => {
+    const apiResponse = { errors: [], response: [] }
+
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      json: () => Promise.resolve(apiResponse),
+    })
+
+    const adapter = new FootballAdapter()
+    await adapter.fetchFixtures({ date: '2026-06-18', isLive: false })
+
+    const calledUrl = mockFetch.mock.calls[0][0]
+    expect(calledUrl).not.toContain('timezone')
+  })
+
   it('includes elapsed in raw status passed to normalizer', async () => {
     const apiResponse = {
       errors: [],

@@ -42,7 +42,7 @@ interface ApiSportsFixturesResponse {
 }
 
 export class FootballAdapter implements SportDataAdapter {
-  async fetchFixtures({ date, isLive }: FetchFixturesOptions) {
+  async fetchFixtures({ date, isLive, timeZone }: FetchFixturesOptions) {
     const apiKey = process.env.API_SPORTS_KEY
 
     if (!apiKey) {
@@ -53,7 +53,9 @@ export class FootballAdapter implements SportDataAdapter {
       return { matches, cached: false, cacheAge: 0 }
     }
 
-    const url = `https://v3.football.api-sports.io/fixtures?date=${date}`
+    const params = new URLSearchParams({ date })
+    if (timeZone) params.set('timezone', timeZone)
+    const url = `https://v3.football.api-sports.io/fixtures?${params.toString()}`
     const ttl = isLive ? 10 : 60
 
     const { data, cached, cacheAge } = await fetchWithCache<ApiSportsFixturesResponse>(

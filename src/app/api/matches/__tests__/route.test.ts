@@ -33,6 +33,9 @@ function makeRequest(url: string): NextRequest {
 describe('GET /api/matches', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockFootballFixtures.mockReset()
+    mockBasketballFixtures.mockReset()
+    mockMmaFixtures.mockReset()
   })
 
   it('returns matches with no params (defaults to football)', async () => {
@@ -116,5 +119,71 @@ describe('GET /api/matches', () => {
 
     const body = await response.json()
     expect(body.error).toContain('invalid')
+  })
+
+  it('passes timezone to adapter when provided', async () => {
+    mockFootballFixtures.mockResolvedValue({
+      matches: [],
+      cached: false,
+      cacheAge: 0,
+    })
+
+    await GET(makeRequest('http://localhost:3000/api/matches?timezone=America/Santiago'))
+
+    expect(mockFootballFixtures).toHaveBeenCalledWith(
+      expect.objectContaining({ timeZone: 'America/Santiago' })
+    )
+  })
+
+  it('returns 200 with successful matches when sport=all and some adapters fail', async () => {
+    mockFootballFixtures.mockRejectedValue(new Error('football down'))
+    mockBasketballFixtures.mockResolvedValue({
+      matches: [{ ...baseMatch, sport: 'basketball' as const, status: 'live' as const }],
+      cached: false,
+      cacheAge: 0,
+    })
+    mockMmaFixtures.mockRejectedValue(new Error('mma down'))
+
+    const response = await GET(makeRequest('http://localhost:3000/api/matches?sport=all'))
+    expect(response.status).toBe(200)
+
+    const body = await response.json()
+    expect(body.matches).toHaveLength(1)
+    expect(body.matches[0].sport).toBe('basketball')
+  })
+
+  it('returns 500 when sport=all and all adapters fail', async () => {
+    mockFootballFixtures.mockRejectedValue(new Error('football down'))
+    mockBasketballFixtures.mockRejectedValue(new Error('basketball down'))
+    mockMmaFixtures.mockRejectedValue(new Error('mma down'))
+
+    const response = await GET(makeRequest('http://localhost:3000/api/matches?sport=all'))
+    expect(response.status).toBe(500)
+
+    const body = await response.json()
+    expect(body.error).toBe('Failed to fetch all sports matches')
+  })
+
+  it('accepts valid timezones not in supportedValuesOf (e.g. Etc/GMT+3)', async () => {
+    mockFootballFixtures.mockResolvedValue({
+      matches: [],
+      cached: false,
+      cacheAge: 0,
+    })
+
+    await GET(makeRequest('http://localhost:3000/api/matches?timezone=Etc/GMT%2B3'))
+
+    expect(mockFootballFixtures).toHaveBeenCalledWith(
+      expect.objectContaining({ timeZone: 'Etc/GMT+3' })
+    )
+  })
+
+  it('resets mock implementations between tests (no RejectedValue leakage)', () => {
+    const fb = mockFootballFixtures()
+    const bb = mockBasketballFixtures()
+    const mma = mockMmaFixtures()
+    expect(fb).toBeUndefined()
+    expect(bb).toBeUndefined()
+    expect(mma).toBeUndefined()
   })
 })

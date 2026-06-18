@@ -89,4 +89,36 @@ describe('SportPage', () => {
     expect(screen.getByText('Próximos')).toBeDefined()
     expect(screen.getByText('Finalizados')).toBeDefined()
   })
+
+  it('sends timezone query param to API based on visitor timezone', async () => {
+    const originalIntl = globalThis.Intl
+    try {
+      const mockTz = 'America/Santiago'
+      const mockDateTimeFormat = function () {
+        return {
+          resolvedOptions: () => ({ timeZone: mockTz, locale: 'en' }),
+          format: () => '2026-06-18',
+        }
+      } as unknown as typeof Intl.DateTimeFormat
+      globalThis.Intl = { DateTimeFormat: mockDateTimeFormat } as typeof Intl
+
+      const fetchSpy = vi.fn().mockResolvedValue({
+        json: () => Promise.resolve({ matches: [], meta: { total: 0, cached: false, cacheAge: 0 } }),
+      })
+      globalThis.fetch = fetchSpy
+
+      await act(async () => {
+        render(<SportPage sport="football" />)
+      })
+
+      await act(async () => {
+        vi.advanceTimersByTime(0)
+      })
+
+      const url = new URL(fetchSpy.mock.calls[0][0] as string)
+      expect(url.searchParams.get('timezone')).toBe('America/Santiago')
+    } finally {
+      globalThis.Intl = originalIntl
+    }
+  })
 })

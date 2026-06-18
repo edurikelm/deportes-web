@@ -1,38 +1,45 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { Radio } from 'lucide-react'
-import { Match } from '@/lib/types'
-import { MatchListCompact, getTodayDateKey, type MatchDateKey } from '@/components/match/MatchListCompact'
+import type { Match } from '@/lib/types'
+import { MatchListCompact, type MatchDateKey } from '@/components/match/MatchListCompact'
 import { MatchListSkeleton } from '@/components/match/MatchCardSkeleton'
 import { MatchClockProvider } from '@/components/match/MatchClockContext'
 import { useMatchPolling } from '@/hooks/useMatchPolling'
+import { getTodayDateKey } from '@/lib/date'
 
 export default function LivePage() {
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
   const [allMatches, setAllMatches] = useState<Match[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [activeDate, setActiveDate] = useState<MatchDateKey>(() => getTodayDateKey())
+  const [activeDate, setActiveDate] = useState<MatchDateKey>(() => getTodayDateKey(timeZone))
 
   const fetchMatches = useCallback(async () => {
     try {
-      const res = await fetch('/api/matches')
+      const apiUrl = new URL('/api/matches', window.location.origin)
+      apiUrl.searchParams.set('sport', 'all')
+      apiUrl.searchParams.set('date', activeDate)
+      apiUrl.searchParams.set('timezone', timeZone)
+      apiUrl.searchParams.set('status', 'live')
+      const res = await fetch(apiUrl.toString())
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const data = await res.json()
-      setAllMatches((data.matches || []).filter((m: Match) => m.status === 'live'))
+      setAllMatches(data.matches || [])
       setError(null)
     } catch {
       setError('Error al cargar partidos')
+    } finally {
+      setLoading(false)
     }
-  }, [])
+  }, [timeZone, activeDate])
 
   const { lastUpdated } = useMatchPolling({
     onFetch: fetchMatches,
     interval: 30000,
+    refreshKey: activeDate,
   })
-
-  useEffect(() => {
-    fetchMatches().then(() => setLoading(false))
-  }, [fetchMatches])
 
   const liveCount = allMatches.length
   const liveFootball = allMatches.filter(m => m.sport === 'football').length
@@ -71,12 +78,12 @@ export default function LivePage() {
 
       {loading ? (
         <div className="p-6"><MatchListSkeleton count={6} /></div>
-      ) : allMatches.length === 0 ? (
+      ) : allMatches.length === 0 && !error ? (
         <div className="flex flex-col items-center justify-center py-20 text-[#666]">
           <Radio className="mb-4 h-12 w-12" />
           <p className="text-lg font-medium">No hay partidos en vivo ahora</p>
         </div>
-      ) : (
+      ) : allMatches.length > 0 ? (
         <MatchClockProvider lastFetchTimestamp={lastUpdated?.getTime()}>
           <MatchListCompact
             matches={allMatches}
@@ -85,7 +92,7 @@ export default function LivePage() {
             onDateChange={setActiveDate}
           />
         </MatchClockProvider>
-      )}
+      ) : null}
     </div>
   )
 }

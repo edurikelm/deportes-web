@@ -1,6 +1,7 @@
 import type { FetchFixturesOptions, SportDataAdapter } from './sportDataAdapter'
 import type { Match } from '@/lib/types'
 import { fetchWithCache, clearCache as sharedClearCache } from './client'
+import { formatDateInTimeZone } from '@/lib/date'
 
 const BASE_URL = 'https://v1.mma.api-sports.io'
 
@@ -205,8 +206,17 @@ export async function fetchMmaFixtures(date: string, isLive = false): Promise<{
   return { matches, cached, cacheAge }
 }
 
+function getNeighboringDates(date: string): [string, string, string] {
+  const d = new Date(date + 'T00:00:00Z')
+  const prev = new Date(d)
+  prev.setUTCDate(prev.getUTCDate() - 1)
+  const next = new Date(d)
+  next.setUTCDate(next.getUTCDate() + 1)
+  return [prev.toISOString().slice(0, 10), date, next.toISOString().slice(0, 10)]
+}
+
 export class MmaAdapter implements SportDataAdapter {
-  async fetchFixtures({ date, isLive }: FetchFixturesOptions) {
+  async fetchFixtures({ date, isLive, timeZone }: FetchFixturesOptions) {
     const apiKey = process.env.API_SPORTS_KEY
 
     if (!apiKey) {
@@ -216,6 +226,22 @@ export class MmaAdapter implements SportDataAdapter {
         matches = matches.filter(m => m.status === 'live')
       }
       return { matches, cached: false, cacheAge: 0 }
+    }
+
+    if (timeZone) {
+      const dates = getNeighboringDates(date)
+      const results = await Promise.all(dates.map(d => fetchMmaFixtures(d, isLive)))
+      const allMatches = results.flatMap(r => r.matches)
+      const cached = results.some(r => r.cached)
+      const cacheAge = Math.max(...results.map(r => r.cacheAge))
+      const seen = new Set<string>()
+      const deduped = allMatches.filter(m => {
+        if (seen.has(m.id)) return false
+        seen.add(m.id)
+        return true
+      })
+      const filtered = deduped.filter(m => formatDateInTimeZone(new Date(m.startTime), timeZone) === date)
+      return { matches: filtered as unknown as Match[], cached, cacheAge }
     }
 
     const result = await fetchMmaFixtures(date, isLive)
