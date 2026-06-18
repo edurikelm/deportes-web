@@ -5,14 +5,6 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'cdn.sofascore.com',
-      },
-      {
-        protocol: 'https',
-        hostname: '*.sofascore.com',
-      },
-      {
-        protocol: 'https',
         hostname: 'media.api-sports.io',
       },
       {

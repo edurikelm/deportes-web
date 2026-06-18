@@ -7,12 +7,12 @@ import { ADAPTERS } from '../adapterRegistry'
 import { clearCache } from '../client'
 import type { Match } from '@/lib/types'
 
-const ORIGINAL_API_KEY = process.env.API_FOOTBALL_API_KEY
+const ORIGINAL_API_KEY = process.env.API_SPORTS_KEY
 
 describe('SportDataAdapter interface', () => {
   it('structural type check', () => {
     const adapter: SportDataAdapter = {
-      async fetchFixtures(_date: string, _isLive: boolean) {
+      async fetchFixtures(_opts: { date: string; isLive: boolean }) {
         return { matches: [], cached: false, cacheAge: 0 }
       },
     }
@@ -34,11 +34,11 @@ describe('FootballAdapter', () => {
     beforeEach(() => {
       mockFetch.mockReset()
       globalThis.fetch = mockFetch
-      process.env.API_FOOTBALL_API_KEY = 'fake-key'
+      process.env.API_SPORTS_KEY = 'fake-key'
     })
 
     afterAll(() => {
-      process.env.API_FOOTBALL_API_KEY = ORIGINAL_API_KEY
+      process.env.API_SPORTS_KEY = ORIGINAL_API_KEY
     })
 
     it('returns Match[] from API response', async () => {
@@ -68,7 +68,7 @@ describe('FootballAdapter', () => {
         json: () => Promise.resolve(mockResponse),
       })
 
-      const result = await adapter.fetchFixtures('2026-05-01', false)
+      const result = await adapter.fetchFixtures({ date: '2026-05-01', isLive: false })
       expect(result.matches).toBeInstanceOf(Array)
       expect(result.matches.length).toBeGreaterThan(0)
       expect(result.matches[0]).toHaveProperty('id')
@@ -82,22 +82,22 @@ describe('FootballAdapter', () => {
 
   describe('fetchFixtures with mock data (no API key)', () => {
     beforeEach(() => {
-      process.env.API_FOOTBALL_API_KEY = ''
+      process.env.API_SPORTS_KEY = ''
     })
 
     afterAll(() => {
-      process.env.API_FOOTBALL_API_KEY = ORIGINAL_API_KEY
+      process.env.API_SPORTS_KEY = ORIGINAL_API_KEY
     })
 
     it('returns mock matches when no API key', async () => {
-      const result = await adapter.fetchFixtures('2026-05-01', false)
+      const result = await adapter.fetchFixtures({ date: '2026-05-01', isLive: false })
       expect(result.matches).toBeInstanceOf(Array)
       expect(result.matches.length).toBeGreaterThan(0)
       expect(result.matches[0].sport).toBe('football')
     })
 
     it('filters to live matches when isLive is true', async () => {
-      const result = await adapter.fetchFixtures('2026-05-01', true)
+      const result = await adapter.fetchFixtures({ date: '2026-05-01', isLive: true })
       expect(result.matches.every(m => m.status === 'live')).toBe(true)
     })
   })
@@ -113,22 +113,22 @@ describe('BasketballAdapter', () => {
 
   describe('fetchFixtures with mock data (no API key)', () => {
     beforeEach(() => {
-      process.env.API_FOOTBALL_API_KEY = ''
+      process.env.API_SPORTS_KEY = ''
     })
 
     afterAll(() => {
-      process.env.API_FOOTBALL_API_KEY = ORIGINAL_API_KEY
+      process.env.API_SPORTS_KEY = ORIGINAL_API_KEY
     })
 
     it('returns basketball matches from mock data', async () => {
-      const result = await adapter.fetchFixtures('2026-05-01', false)
+      const result = await adapter.fetchFixtures({ date: '2026-05-01', isLive: false })
       expect(result.matches).toBeInstanceOf(Array)
       expect(result.matches.length).toBeGreaterThan(0)
       expect(result.matches.every(m => m.sport === 'basketball')).toBe(true)
     })
 
     it('filters to live matches when isLive is true', async () => {
-      const result = await adapter.fetchFixtures('2026-05-01', true)
+      const result = await adapter.fetchFixtures({ date: '2026-05-01', isLive: true })
       expect(result.matches.every(m => m.status === 'live')).toBe(true)
     })
   })
@@ -144,22 +144,22 @@ describe('MmaAdapter', () => {
 
   describe('fetchFixtures with mock data (no API key)', () => {
     beforeEach(() => {
-      process.env.API_FOOTBALL_API_KEY = ''
+      process.env.API_SPORTS_KEY = ''
     })
 
     afterAll(() => {
-      process.env.API_FOOTBALL_API_KEY = ORIGINAL_API_KEY
+      process.env.API_SPORTS_KEY = ORIGINAL_API_KEY
     })
 
     it('returns MMA matches from mock data', async () => {
-      const result = await adapter.fetchFixtures('2026-05-01', false)
+      const result = await adapter.fetchFixtures({ date: '2026-05-01', isLive: false })
       expect(result.matches).toBeInstanceOf(Array)
       expect(result.matches.length).toBeGreaterThan(0)
       expect(result.matches.every(m => m.sport === 'mma')).toBe(true)
     })
 
     it('filters to live matches when isLive is true', async () => {
-      const result = await adapter.fetchFixtures('2026-05-01', true)
+      const result = await adapter.fetchFixtures({ date: '2026-05-01', isLive: true })
       expect(result.matches.every(m => m.status === 'live')).toBe(true)
     })
   })

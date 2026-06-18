@@ -9,7 +9,7 @@ describe('FootballAdapter.fetchFixtures', () => {
   beforeEach(() => {
     clearCache()
     mockFetch.mockReset()
-    vi.stubEnv('API_FOOTBALL_API_KEY', 'test-key')
+    vi.stubEnv('API_SPORTS_KEY', 'test-key')
   })
 
   it('includes elapsed in raw status passed to normalizer', async () => {
@@ -42,7 +42,7 @@ describe('FootballAdapter.fetchFixtures', () => {
     })
 
     const adapter = new FootballAdapter()
-    const { matches } = await adapter.fetchFixtures('2026-05-01', false)
+    const { matches } = await adapter.fetchFixtures({ date: '2026-05-01', isLive: false })
 
     expect(matches).toHaveLength(1)
     expect(matches[0].minute).toBe(34)

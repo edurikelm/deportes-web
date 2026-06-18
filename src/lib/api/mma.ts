@@ -1,4 +1,4 @@
-import type { SportDataAdapter } from './sportDataAdapter'
+import type { FetchFixturesOptions, SportDataAdapter } from './sportDataAdapter'
 import type { Match } from '@/lib/types'
 import { fetchWithCache, clearCache as sharedClearCache } from './client'
 
@@ -196,12 +196,8 @@ export async function fetchMmaFixtures(date: string, isLive = false): Promise<{
 
   const errors = (data as any).errors
   if (errors && Object.keys(errors).length > 0) {
-    const { MOCK_MMA_MATCHES } = await import('@/lib/mock-data')
-    let matches = MOCK_MMA_MATCHES as unknown as NormalizedMmaMatch[]
-    if (isLive) {
-      matches = matches.filter(m => m.status === 'live') as unknown as NormalizedMmaMatch[]
-    }
-    return { matches, cached: false, cacheAge: 0 }
+    console.error(`MMA API errors:`, errors)
+    return { matches: [], cached: false, cacheAge: 0 }
   }
 
   const matches = (data.response || []).map(normalizeMmaMatch)
@@ -210,8 +206,8 @@ export async function fetchMmaFixtures(date: string, isLive = false): Promise<{
 }
 
 export class MmaAdapter implements SportDataAdapter {
-  async fetchFixtures(date: string, isLive: boolean) {
-    const apiKey = process.env.API_FOOTBALL_API_KEY
+  async fetchFixtures({ date, isLive }: FetchFixturesOptions) {
+    const apiKey = process.env.API_SPORTS_KEY
 
     if (!apiKey) {
       const { MOCK_MMA_MATCHES } = await import('@/lib/mock-data')

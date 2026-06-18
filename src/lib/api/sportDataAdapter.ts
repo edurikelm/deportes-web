@@ -1,7 +1,12 @@
 import type { Match } from '@/lib/types'
 
+export interface FetchFixturesOptions {
+  date: string
+  isLive: boolean
+}
+
 export interface SportDataAdapter {
-  fetchFixtures(date: string, isLive: boolean): Promise<{
+  fetchFixtures(opts: FetchFixturesOptions): Promise<{
     matches: Match[]
     cached: boolean
     cacheAge: number

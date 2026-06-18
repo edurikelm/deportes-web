@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
   const adapter = ADAPTERS[sport]
 
   try {
-    const { matches, cached, cacheAge } = await adapter.fetchFixtures(date, isLive)
+    const { matches, cached, cacheAge } = await adapter.fetchFixtures({ date, isLive })
 
     let filtered = matches
     if (status) {

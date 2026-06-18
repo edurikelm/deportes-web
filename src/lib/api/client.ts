@@ -1,4 +1,4 @@
-const API_KEY = process.env.API_FOOTBALL_API_KEY
+const API_KEY = process.env.API_SPORTS_KEY
 
 const cache = new Map<string, { data: unknown; timestamp: number }>()
 

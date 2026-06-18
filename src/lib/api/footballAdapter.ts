@@ -1,4 +1,4 @@
-import type { SportDataAdapter } from './sportDataAdapter'
+import type { FetchFixturesOptions, SportDataAdapter } from './sportDataAdapter'
 import type { Match } from '@/lib/types'
 import type { ApiFootballMatch } from './types'
 import { fetchWithCache } from './client'
@@ -42,8 +42,8 @@ interface ApiSportsFixturesResponse {
 }
 
 export class FootballAdapter implements SportDataAdapter {
-  async fetchFixtures(date: string, isLive: boolean) {
-    const apiKey = process.env.API_FOOTBALL_API_KEY
+  async fetchFixtures({ date, isLive }: FetchFixturesOptions) {
+    const apiKey = process.env.API_SPORTS_KEY
 
     if (!apiKey) {
       let matches = MOCK_MATCHES
@@ -63,11 +63,8 @@ export class FootballAdapter implements SportDataAdapter {
     )
 
     if (data.errors && Object.keys(data.errors).length > 0) {
-      let matches = MOCK_MATCHES
-      if (isLive) {
-        matches = matches.filter(m => m.status === 'live')
-      }
-      return { matches, cached: false, cacheAge: 0 }
+      console.error(`Football API errors:`, data.errors)
+      return { matches: [], cached: false, cacheAge: 0 }
     }
 
     const matches: Match[] = (data.response || []).map((f) => {

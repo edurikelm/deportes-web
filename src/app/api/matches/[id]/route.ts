@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { MOCK_MATCHES } from '@/lib/mock-data'
+import { MOCK_MATCHES, MOCK_BASKETBALL_MATCHES, MOCK_MMA_MATCHES } from '@/lib/mock-data'
 
 export const dynamic = 'force-dynamic'
 
@@ -8,10 +8,10 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
-  const apiKey = process.env.API_FOOTBALL_API_KEY
+  const apiKey = process.env.API_SPORTS_KEY
 
   if (!apiKey) {
-    const match = MOCK_MATCHES.find(m => m.id === id)
+    const match = [...MOCK_MATCHES, ...MOCK_BASKETBALL_MATCHES, ...MOCK_MMA_MATCHES].find(m => m.id === id)
     if (!match) {
       return NextResponse.json({ error: 'Match not found' }, { status: 404 })
     }

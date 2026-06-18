@@ -38,10 +38,10 @@ export const SPORT_PAGE_CONFIGS: Record<Sport, SportPageConfig> = {
     title: 'Básquet',
     accentColor: '#C8102E',
     leagues: [
-      { id: 'nba', name: 'NBA', country: 'USA', logo: 'https://cdn.sofascore.com/images/league/logo/21894.png', color: '#1D428A' },
-      { id: 'euroleague', name: 'EuroLeague', country: 'Europe', logo: 'https://cdn.sofascore.com/images/league/logo/3747.png', color: '#FFB81C' },
-      { id: 'acb', name: 'ACB', country: 'Spain', logo: 'https://cdn.sofascore.com/images/league/logo/3757.png', color: '#E03A3E' },
-      { id: 'lega', name: 'Lega Basket', country: 'Italy', logo: 'https://cdn.sofascore.com/images/league/logo/3797.png', color: '#0066B0' },
+      { id: 'nba', name: 'NBA', country: 'USA', logo: 'https://cdn.nba.com/logos/nba/primary/L/logo.svg', color: '#1D428A' },
+      { id: 'euroleague', name: 'EuroLeague', country: 'Europe', logo: 'https://upload.wikimedia.org/wikipedia/en/thumb/8/88/Euroleague_Basketball_logo.svg/512px-Euroleague_Basketball_logo.svg.png', color: '#FFB81C' },
+      { id: 'acb', name: 'ACB', country: 'Spain', logo: 'https://upload.wikimedia.org/wikipedia/en/thumb/a/a0/Liga_ACB_logo.svg/512px-Liga_ACB_logo.svg.png', color: '#E03A3E' },
+      { id: 'lega', name: 'Lega Basket', country: 'Italy', logo: 'https://upload.wikimedia.org/wikipedia/en/thumb/2/2c/Lega_Basket_Serie_A_logo.svg/512px-Lega_Basket_Serie_A_logo.svg.png', color: '#0066B0' },
     ],
   },
   mma: {
