@@ -82,6 +82,9 @@ Agrupa MatchRows por league. Barra de acento izquierda de 2px con el color de la
 ### MatchDetail (Detalle de Partido)
 Página `/match/[id]`. ScoreDisplay grande con goleadores debajo de cada nombre de equipo (líneas separadas, sin truncar). MatchTimeline, StreamLinks. Sidebar visible en desktop.
 
+### Ventana flotante de partido en vivo
+Ventana externa del navegador para seguir un único **Match** con estado `live` en computador. Muestra un marcador compacto con liga, reloj, equipos, score y último evento de marcador o frescura de actualización. No es una notificación, un favorito ni un pinning de liga.
+
 ### Búsqueda Inline
 La búsqueda se activa desde la Sidebar ("Buscar"). En vez de navegar a `/search`, abre un input en el área principal. Los resultados reemplazan el contenido actual como MatchRows filtrados. `/search` se mantiene como fallback.
 

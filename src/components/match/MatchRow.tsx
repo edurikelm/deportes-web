@@ -60,7 +60,7 @@ export function MatchRow({ match }: MatchRowProps) {
 
   return (
     <Link
-      href={`/match/${match.id}`}
+      href={`/match/${match.sport}/${match.id}`}
       className="group grid grid-cols-[84px_minmax(0,1fr)_72px_minmax(0,1fr)] items-center gap-x-2 border-b border-[#1f1f1f] px-3 py-2.5 transition-colors hover:bg-[#121212] sm:grid-cols-[116px_minmax(0,1fr)_96px_minmax(0,1fr)] sm:gap-x-3 sm:px-4"
     >
       <div className={streamInfo || showScorers ? 'row-span-2 self-start pt-0.5' : ''}>

@@ -4,6 +4,7 @@ import { useState, Suspense } from 'react'
 import { Header } from './Header'
 import { Sidebar } from './Sidebar'
 import { Drawer } from './Drawer'
+import { LiveMatchFloatingProvider } from '@/contexts/LiveMatchFloatingContext'
 
 type SidebarLayoutProps = {
   children: React.ReactNode
@@ -13,7 +14,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
 
   return (
-    <>
+    <LiveMatchFloatingProvider>
       <Header
         leftSlot={
           <Drawer
@@ -31,6 +32,6 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
           </div>
         </main>
       </Suspense>
-    </>
+    </LiveMatchFloatingProvider>
   )
 }

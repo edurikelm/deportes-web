@@ -125,11 +125,22 @@ describe('MatchRow', () => {
     expect(screen.getByText(/ESPN/)).toBeDefined()
   })
 
-  it('navigates to /match/[id] on click', () => {
+  it('navigates to /match/[sport]/[id] on click', () => {
     renderMatchRow(footballMatch)
     const link = screen.getByRole('link')
     expect(link).toBeDefined()
-    expect(link.getAttribute('href')).toBe('/match/f1')
+    expect(link.getAttribute('href')).toBe('/match/football/f1')
+  })
+
+  it('navigates to /match/basketball/[id] for basketball matches', () => {
+    const bballMatch: Match = {
+      ...footballMatch,
+      id: 'b1',
+      sport: 'basketball',
+    }
+    renderMatchRow(bballMatch)
+    const link = screen.getByRole('link')
+    expect(link.getAttribute('href')).toBe('/match/basketball/b1')
   })
 
   it('renders home and away team logos as img tags', () => {
