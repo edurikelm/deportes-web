@@ -37,7 +37,7 @@ interface LiveMatchFloatingContextValue extends UseLiveMatchFloatingReturn {
 function createDefaultFloatingWindowApi(): FloatingWindowApi {
   return {
     requestWindow: async (options) => {
-      return await window.documentPictureInPicture.requestWindow(options)
+      return await window.documentPictureInPicture!.requestWindow(options)
     },
     isSupported: () =>
       'documentPictureInPicture' in window &&

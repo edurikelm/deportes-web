@@ -2,6 +2,14 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook } from '@testing-library/react'
 import { useLiveMatchPolling } from '../useLiveMatchPolling'
 
+function mockFetchResponse(data: unknown, options?: { ok?: boolean; status?: number }): Response {
+  return {
+    ok: options?.ok ?? true,
+    status: options?.status ?? 200,
+    json: () => Promise.resolve(data),
+  } as unknown as Response
+}
+
 describe('useLiveMatchPolling', () => {
   beforeEach(() => {
     vi.useFakeTimers()
@@ -90,11 +98,7 @@ describe('useLiveMatchPolling', () => {
 
     const capturedLastUpdated = result.current.lastUpdated
 
-    fetchSpy.mockResolvedValue({
-      ok: false,
-      status: 429,
-      json: () => Promise.resolve({}),
-    })
+    fetchSpy.mockResolvedValue(mockFetchResponse({}, { ok: false, status: 429 }))
 
     await vi.advanceTimersByTimeAsync(30000)
 
@@ -117,10 +121,7 @@ describe('useLiveMatchPolling', () => {
       expect(fetchSpy).toHaveBeenCalledTimes(1)
     })
 
-    fetchSpy.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ matches: [{ id: '1', status: 'finished' }] }),
-    })
+    fetchSpy.mockResolvedValue(mockFetchResponse({ matches: [{ id: '1', status: 'finished' }] }))
 
     await vi.advanceTimersByTimeAsync(30000)
 
@@ -150,10 +151,7 @@ describe('useLiveMatchPolling', () => {
       expect(onData).toHaveBeenCalledTimes(1)
     })
 
-    fetchSpy.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ matches: [{ id: '1', status: 'finished' }] }),
-    })
+    fetchSpy.mockResolvedValue(mockFetchResponse({ matches: [{ id: '1', status: 'finished' }] }))
 
     await vi.advanceTimersByTimeAsync(30000)
 
@@ -182,15 +180,7 @@ describe('useLiveMatchPolling', () => {
       expect(fetchSpy).toHaveBeenCalledTimes(1)
     })
 
-    fetchSpy.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({
-        matches: [
-          { id: '2', status: 'finished' },
-          { id: '1', status: 'live' },
-        ],
-      }),
-    })
+    fetchSpy.mockResolvedValue(mockFetchResponse({ matches: [{ id: '2', status: 'finished' }, { id: '1', status: 'live' }] }))
 
     await vi.advanceTimersByTimeAsync(30000)
 
@@ -214,10 +204,7 @@ describe('useLiveMatchPolling', () => {
     })
 
     // First miss: polling continues
-    fetchSpy.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ matches: [{ id: '2', status: 'live' }] }),
-    })
+    fetchSpy.mockResolvedValue(mockFetchResponse({ matches: [{ id: '2', status: 'live' }] }))
     await vi.advanceTimersByTimeAsync(30000)
     expect(fetchSpy).toHaveBeenCalledTimes(2)
     expect(result.current.isPolling).toBe(true)
@@ -242,10 +229,7 @@ describe('useLiveMatchPolling', () => {
     })
 
     // Mock response without tracked match
-    fetchSpy.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ matches: [{ id: '2', status: 'live' }] }),
-    })
+    fetchSpy.mockResolvedValue(mockFetchResponse({ matches: [{ id: '2', status: 'live' }] }))
     await vi.advanceTimersByTimeAsync(30000)
 
     expect(fetchSpy).toHaveBeenCalledTimes(2)
@@ -266,10 +250,7 @@ describe('useLiveMatchPolling', () => {
     })
 
     // Tick 1: tracked match missing (count=1)
-    fetchSpy.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ matches: [{ id: '2', status: 'live' }] }),
-    })
+    fetchSpy.mockResolvedValue(mockFetchResponse({ matches: [{ id: '2', status: 'live' }] }))
     await vi.advanceTimersByTimeAsync(30000)
     expect(fetchSpy).toHaveBeenCalledTimes(2)
     await vi.waitFor(() => {
@@ -277,10 +258,7 @@ describe('useLiveMatchPolling', () => {
     })
 
     // Tick 2: tracked match reappears → counter resets
-    fetchSpy.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ matches: [{ id: '1', status: 'live' }, { id: '2', status: 'live' }] }),
-    })
+    fetchSpy.mockResolvedValue(mockFetchResponse({ matches: [{ id: '1', status: 'live' }, { id: '2', status: 'live' }] }))
     await vi.advanceTimersByTimeAsync(30000)
     expect(fetchSpy).toHaveBeenCalledTimes(3)
     await vi.waitFor(() => {
@@ -288,10 +266,7 @@ describe('useLiveMatchPolling', () => {
     })
 
     // Tick 3: tracked match missing again (count=1, not enough)
-    fetchSpy.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ matches: [{ id: '2', status: 'live' }] }),
-    })
+    fetchSpy.mockResolvedValue(mockFetchResponse({ matches: [{ id: '2', status: 'live' }] }))
     await vi.advanceTimersByTimeAsync(30000)
     expect(fetchSpy).toHaveBeenCalledTimes(4)
     expect(result.current.isPolling).toBe(true)
@@ -316,10 +291,7 @@ describe('useLiveMatchPolling', () => {
     })
 
     // Empty matches array should not count as missing
-    fetchSpy.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ matches: [] }),
-    })
+    fetchSpy.mockResolvedValue(mockFetchResponse({ matches: [] }))
     await vi.advanceTimersByTimeAsync(30000)
     expect(fetchSpy).toHaveBeenCalledTimes(2)
     await vi.waitFor(() => {
@@ -344,10 +316,7 @@ describe('useLiveMatchPolling', () => {
       expect(fetchSpy).toHaveBeenCalledTimes(1)
     })
 
-    fetchSpy.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ matches: [{ id: '1', status: 'finished' }] }),
-    })
+    fetchSpy.mockResolvedValue(mockFetchResponse({ matches: [{ id: '1', status: 'finished' }] }))
 
     await vi.advanceTimersByTimeAsync(30000)
 

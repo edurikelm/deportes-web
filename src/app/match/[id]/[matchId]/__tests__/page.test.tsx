@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import type { ReactNode } from 'react'
+import type { Match } from '@/lib/types'
 import MatchSportDetailPage from '../page'
 import { useLiveMatchFloating } from '@/contexts/LiveMatchFloatingContext'
 
@@ -236,7 +237,7 @@ describe('MatchSportDetailPage', () => {
       mockUseLiveMatchFloating.mockReturnValue({
         isSupported: true,
         isFloatingOpen: true,
-        floatingMatch: { id: 'other-match' },
+        floatingMatch: { id: 'other-match' } as unknown as Match,
         openFloatingMatch: vi.fn(),
         updateFloatingContent: vi.fn(),
         closeFloatingMatch: vi.fn(),
@@ -261,7 +262,7 @@ describe('MatchSportDetailPage', () => {
       mockUseLiveMatchFloating.mockReturnValue({
         isSupported: true,
         isFloatingOpen: true,
-        floatingMatch: { id: 'f1' },
+        floatingMatch: { id: 'f1' } as unknown as Match,
         openFloatingMatch,
         updateFloatingContent,
         closeFloatingMatch: vi.fn(),
@@ -287,7 +288,7 @@ describe('MatchSportDetailPage', () => {
       mockUseLiveMatchFloating.mockReturnValue({
         isSupported: true,
         isFloatingOpen: true,
-        floatingMatch: { id: 'f1' },
+        floatingMatch: { id: 'f1' } as unknown as Match,
         openFloatingMatch: vi.fn(),
         updateFloatingContent: vi.fn(),
         closeFloatingMatch: vi.fn(),
@@ -304,7 +305,7 @@ describe('MatchSportDetailPage', () => {
       mockUseLiveMatchFloating.mockReturnValue({
         isSupported: true,
         isFloatingOpen: true,
-        floatingMatch: { id: 'f1' },
+        floatingMatch: { id: 'f1' } as unknown as Match,
         openFloatingMatch: vi.fn(),
         updateFloatingContent: vi.fn(),
         closeFloatingMatch: vi.fn(),
@@ -328,7 +329,7 @@ describe('MatchSportDetailPage', () => {
       mockUseLiveMatchFloating.mockReturnValue({
         isSupported: true,
         isFloatingOpen: true,
-        floatingMatch: { id: 'f1' },
+        floatingMatch: { id: 'f1' } as unknown as Match,
         openFloatingMatch: vi.fn(),
         updateFloatingContent: vi.fn(),
         closeFloatingMatch: vi.fn(),
@@ -350,7 +351,7 @@ describe('MatchSportDetailPage', () => {
       mockUseLiveMatchFloating.mockReturnValue({
         isSupported: true,
         isFloatingOpen: true,
-        floatingMatch: { id: 'f1' },
+        floatingMatch: { id: 'f1' } as unknown as Match,
         openFloatingMatch: vi.fn(),
         updateFloatingContent: vi.fn(),
         closeFloatingMatch: vi.fn(),
@@ -369,7 +370,7 @@ describe('MatchSportDetailPage', () => {
       mockUseLiveMatchFloating.mockReturnValue({
         isSupported: true,
         isFloatingOpen: true,
-        floatingMatch: { id: 'f1' },
+        floatingMatch: { id: 'f1' } as unknown as Match,
         openFloatingMatch: vi.fn(),
         updateFloatingContent: vi.fn(),
         closeFloatingMatch: vi.fn(),
