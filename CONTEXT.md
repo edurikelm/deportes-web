@@ -126,3 +126,32 @@ El endpoint `/api/matches` acepta `sport=all` para consultar todos los deportes 
 - **Fecha diaria por visitante:** Los listados de partidos se consultan y filtran por la fecha local en la zona horaria IANA del visitante. El backend recibe `date` + `timezone`; si el proveedor externo no soporta timezone de forma confiable, el adapter debe cubrir bordes UTC consultando fechas vecinas y filtrando por `startTime` en la zona del visitante.
 - **Design:** Dark mode por defecto, paleta por league. Layout Flashscore-style: sidebar fija en desktop, drawer en mobile, filas compactas sin cards, ligas pineables vía localStorage, búsqueda inline en área principal.
 - **Transiciones:** Solo CSS (Tailwind `transition-*`). Sin framer-motion. Slide-in del drawer, crossfade de contenido, transition-colors en badges.
+
+## Process — Orquestación Matt Pocock
+
+### deportes-orchestrator
+
+Agente primario definido en `opencode.json` y `.opencode/agent/deportes-orchestrator.md`. Su trabajo NO es implementar código no trivial; es clasificar la petición en N1/N2/N3 y delegar a la combinación correcta de subagentes y skills de Matt Pocock. Responde en español, 2-4 líneas por turno, con referencias `path:line`.
+
+### Subagentes operativos
+
+Cada subagente tiene un prompt enfocado en `.opencode/agent/<nombre>.md`. Roles:
+
+- `explorer` — read-only research (`/zoom-out`, auditorías). No edita.
+- `architect` — diseña seams, interfaces, ADRs. No escribe código de producción.
+- `implementer` — escribe código en worktree cuando hay plan claro. Cambios triviales los hace el orchestrator inline.
+- `tester` — TDD red-green-refactor, regression tests. Vitest.
+- `reviewer` — última línea antes del merge. No edita, produce veredicto + findings accionables.
+- `docs-writer` — mantiene `CONTEXT.md`, `docs/adr/*.md` y, condicionalmente, `DESIGN.md`.
+
+### Work Levels (N1 / N2 / N3)
+
+Clasificación obligatoria antes de actuar. Definición exacta en `AGENTS.md` > "Work levels" y `docs/adr/0006-orchestracion-matt-pocock.md`. N1 = orchestrator inline, N2 = `implementer + reviewer`, N3 = cadena completa `architect → implementer + tester → reviewer → docs-writer`.
+
+### Verification Artifact Cleanup
+
+Screenshots, lighthouse reports, traces, heapsnapshots y otros artifacts de verificación se guardan en `C:\Users\eduri\AppData\Local\Temp\opencode\deportes-web\` durante la tarea y se borran del repo antes de reportar "done" o pedir commit. No dejar `*.png`, `*.trace.json*`, `*.heapsnapshot`, o `lighthouse-*.html` dentro del árbol.
+
+### DESIGN.md condicional
+
+`DESIGN.md` no es session-global. Siempre leer `CONTEXT.md`. Leer `DESIGN.md` solo cuando el trabajo toca UI, styling, layout, componentes, breakpoints responsive o dark mode. `docs-writer` mantiene `DESIGN.md` con decisiones visuales durables.
