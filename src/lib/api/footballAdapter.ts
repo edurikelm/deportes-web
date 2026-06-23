@@ -1,8 +1,8 @@
-import type { FetchFixturesOptions, SportDataAdapter } from './sportDataAdapter'
+import type { FetchFixturesOptions, LineupResult, SportDataAdapter } from './sportDataAdapter'
 import type { Match } from '@/lib/types'
-import type { ApiFootballMatch } from './types'
+import type { ApiFootballMatch, ApiFootballLineupsResponse } from './types'
 import { fetchWithCache } from './client'
-import { normalizeMatch } from './normalizer'
+import { normalizeLineup, normalizeMatch } from './normalizer'
 import { MOCK_MATCHES } from '@/lib/mock-data'
 import { resolveStreamLinks } from '@/lib/streaming-links'
 
@@ -118,5 +118,46 @@ export class FootballAdapter implements SportDataAdapter {
     })
 
     return { matches, cached, cacheAge }
+  }
+
+  async fetchLineup(matchId: string): Promise<LineupResult> {
+    const apiKey = process.env.API_SPORTS_KEY
+
+    if (!apiKey) {
+      return { cached: false, cacheAge: 0 }
+    }
+
+    const [lineupsData, fixtureData] = await Promise.all([
+      fetchWithCache<ApiFootballLineupsResponse>(
+        `https://v3.football.api-sports.io/fixtures/lineups?fixture=${matchId}`,
+        {},
+        120,
+      ),
+      fetchWithCache<{
+        response?: Array<{
+          teams: {
+            home: { id: number }
+            away: { id: number }
+          }
+        }>
+      }>(`https://v3.football.api-sports.io/fixtures?id=${matchId}`, {}, 120),
+    ])
+
+    const lineups = lineupsData.data.response
+    const fixture = fixtureData.data.response?.[0]
+
+    if (!lineups || lineups.length < 2 || !fixture) {
+      return { cached: lineupsData.cached, cacheAge: lineupsData.cacheAge }
+    }
+
+    const homeTeamId = String(fixture.teams.home.id)
+    const awayTeamId = String(fixture.teams.away.id)
+    const lineup = normalizeLineup(lineups, homeTeamId, awayTeamId)
+
+    return {
+      lineup,
+      cached: lineupsData.cached && fixtureData.cached,
+      cacheAge: Math.min(lineupsData.cacheAge, fixtureData.cacheAge),
+    }
   }
 }

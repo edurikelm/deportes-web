@@ -88,6 +88,28 @@ export interface StreamLink {
   url?: string
 }
 
+export interface LineupPlayer {
+  id: string
+  name: string
+  number: number
+  pos?: string
+  grid?: string
+  photo?: string
+}
+
+export interface TeamLineup {
+  team: Team
+  formation: string
+  coach?: string
+  startXI: LineupPlayer[]
+  substitutes: LineupPlayer[]
+}
+
+export interface Lineup {
+  home: TeamLineup
+  away: TeamLineup
+}
+
 export interface Match {
   id: string
   sport: Sport

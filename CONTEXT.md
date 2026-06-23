@@ -14,6 +14,15 @@ Competencia footballística (Premier League, La Liga, etc). Tiene `id`, `name`, 
 ### Pinned League (Liga Fijada)
 Liga que el usuario ancla para que aparezca primero en el listado. Se persiste en `localStorage` (sin backend, sin auth). El pinning es por navegador — no sincroniza entre dispositivos. Una liga fijada siempre aparece arriba de las no fijadas, separada por un divider visual.
 
+### Lineup (Alineación)
+Formación inicial de ambos equipos en un partido. Expuesta como recurso separado de Match, no embebida. Solo existe para football; basketball y MMA no muestran la tab. Se fetchea bajo demanda via `/api/matches/[id]/lineup` con TTL 120s. Si API-Football no entrega datos, la UI muestra "Alineaciones no disponibles".
+
+### TeamLineup (Alineación de Equipo)
+Alineación de un equipo específico dentro de un Match. Contiene `team`, `formation` (ej. "4-3-3"), `coach?`, `startXI` y `substitutes`. La formación puede venir vacía si la API no la expone.
+
+### LineupPlayer (Jugador en Alineación)
+Jugador dentro de una alineación. Campos: `id`, `name`, `number`, `pos?`, `grid?`, `photo?`. `grid` preserva la posición raw de API-Football para renderizar la cancha.
+
 ### MatchEvent (Evento de Partido)
 Gol, tarjeta amarilla/roja, penal, sustitución para fútbol. El campo `detail` propaga subtipos (Penalty, Own Goal, Missed Penalty, Yellow Card, Red Card). Tipos desconocidos mapean a `'unknown'` — **no** caen a `'goal'` para evitar falsos goleadores. Para otros deportes, campos opcionales genéricos (`extra?: Record<string, unknown>`) permiten flexibilidad. Tipo, minuto, jugador, equipo. No todos los partidos tienen eventos — campo opcional.
 
@@ -83,7 +92,7 @@ Reemplaza a `MatchCard`. Formato compacto de dos líneas por partido. Layout hor
 Agrupa MatchRows por league. Barra de acento izquierda de 2px con el color de la liga, nombre de la liga + país, e ícono de pin 📌 a la derecha (si está fijada). Sin fondo de card.
 
 ### MatchDetail (Detalle de Partido)
-Página `/match/[id]`. ScoreDisplay grande con goleadores debajo de cada nombre de equipo (líneas separadas, sin truncar). MatchTimeline, StreamLinks. Sidebar visible en desktop.
+Página `/match/[sport]/[id]`. ScoreDisplay grande con goleadores debajo de cada nombre de equipo (líneas separadas, sin truncar). Header fijo en scroll. Tabs estilo Flashscore: **Resumen**, **Cronología**, **Alineaciones**, **Transmisión**. Las alineaciones son lazy — solo se cargan para football via `/api/matches/[id]/lineup` cuando el usuario entra a la tab. La tab "Transmisión" muestra StreamLinks.
 
 ### Ventana flotante de partido en vivo
 Ventana externa del navegador para seguir un único **Match** con estado `live` en computador. Muestra un marcador compacto con liga, reloj, equipos, score y último evento de marcador o frescura de actualización. No es una notificación, un favorito ni un pinning de liga.

@@ -67,3 +67,34 @@ export interface ApiFootballResponse {
     cacheAge: number
   }
 }
+
+export interface ApiFootballLineupPlayer {
+  player: {
+    id: number | null
+    name: string
+    number: number
+    pos?: string | null
+    grid?: string | null
+  }
+}
+
+export interface ApiFootballTeamLineup {
+  team: {
+    id: number
+    name: string
+    logo: string
+  }
+  formation?: string | null
+  startXI: ApiFootballLineupPlayer[]
+  substitutes: ApiFootballLineupPlayer[]
+  coach?: {
+    id?: number | null
+    name?: string | null
+    photo?: string | null
+  } | null
+}
+
+export interface ApiFootballLineupsResponse {
+  response?: ApiFootballTeamLineup[]
+  errors?: Record<string, unknown>
+}

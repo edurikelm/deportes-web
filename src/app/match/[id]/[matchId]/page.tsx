@@ -5,10 +5,9 @@ import { useParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import type { Match } from '@/lib/types'
 import { ScoreDisplay } from '@/components/match/ScoreDisplay'
-import { MatchTimeline } from '@/components/match/MatchTimeline'
-import { StreamLinks } from '@/components/match/StreamLinks'
 import { MatchClockProvider } from '@/components/match/MatchClockContext'
 import { StatusBadge } from '@/components/match/StatusBadge'
+import { MatchDetailTabs } from '@/components/match/MatchDetailTabs'
 import { useMatchPolling } from '@/hooks/useMatchPolling'
 import { useLiveMatchFloating } from '@/contexts/LiveMatchFloatingContext'
 import { useLiveMatchPolling } from '@/hooks/useLiveMatchPolling'
@@ -169,27 +168,6 @@ export default function MatchSportDetailPage() {
   }
 
   const accentColor = match.league.color
-  const matchDate = new Date(match.startTime)
-  const isValidDate = !Number.isNaN(matchDate.getTime())
-  const formattedDate = isValidDate
-    ? matchDate.toLocaleString('es-CL', {
-      weekday: 'short',
-      day: '2-digit',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-    : '--'
-
-  const summaryItems = [
-    {
-      label: 'Estado',
-      value: match.status === 'live' ? 'En vivo' : match.status === 'finished' ? 'Finalizado' : 'Proximo',
-    },
-    { label: 'Inicio', value: formattedDate },
-    { label: 'Liga', value: match.league.name },
-    { label: 'Pais', value: match.league.country },
-  ]
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
@@ -275,43 +253,7 @@ export default function MatchSportDetailPage() {
           </div>
         </MatchClockProvider>
 
-        <div className="mb-6 overflow-hidden rounded-xl border border-[#262626] bg-[#141414]">
-          <div className="border-b border-[#262626] px-6 py-4">
-            <h2 className="text-lg font-semibold text-white">Resumen del partido</h2>
-          </div>
-          <div className="grid gap-3 p-6 sm:grid-cols-2">
-            {summaryItems.map((item) => (
-              <div key={item.label} className="rounded-lg border border-[#262626] bg-[#101010] px-4 py-3">
-                <p className="text-xs uppercase tracking-wide text-[#666]">{item.label}</p>
-                <p className="mt-1 text-sm font-medium text-white">{item.value}</p>
-              </div>
-            ))}
-            <div className="rounded-lg border border-[#262626] bg-[#101010] px-4 py-3 sm:col-span-2">
-              <p className="text-xs uppercase tracking-wide text-[#666]">Transmision principal</p>
-              <p className="mt-1 text-sm font-medium text-white">
-                {match.streamLinks[0]?.name || 'Sin links disponibles'}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="mb-6 overflow-hidden rounded-xl border border-[#262626] bg-[#141414]">
-          <div className="border-b border-[#262626] px-6 py-4">
-            <h2 className="text-lg font-semibold text-white">Cronologia</h2>
-          </div>
-          <div className="p-6">
-            <MatchTimeline events={match.events} />
-          </div>
-        </div>
-
-        <div className="mb-6 overflow-hidden rounded-xl border border-[#262626] bg-[#141414]">
-          <div className="border-b border-[#262626] px-6 py-4">
-            <h2 className="text-lg font-semibold text-white">Transmision</h2>
-          </div>
-          <div className="p-6">
-            <StreamLinks links={match.streamLinks} />
-          </div>
-        </div>
+        <MatchDetailTabs match={match} />
       </div>
     </div>
   )

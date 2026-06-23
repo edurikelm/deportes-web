@@ -1,5 +1,5 @@
-import type { Match, MatchEvent, Sport, StreamLink } from '@/lib/types'
-import type { ApiFootballMatch } from './types'
+import type { Lineup, LineupPlayer, Match, MatchEvent, Sport, StreamLink, Team, TeamLineup } from '@/lib/types'
+import type { ApiFootballMatch, ApiFootballTeamLineup } from './types'
 
 type ApiFootballEventTime = NonNullable<ApiFootballMatch['events']>[number]['time']
 
@@ -131,4 +131,48 @@ function normalizeStreamLinks(links: ApiFootballMatch['streamLinks']): StreamLin
     name: l.name,
     url: l.link,
   }))
+}
+
+function normalizeLineupPlayer(raw: ApiFootballTeamLineup['startXI'][number]): LineupPlayer {
+  return {
+    id: String(raw.player.id ?? `${raw.player.name}-${raw.player.number}`),
+    name: raw.player.name,
+    number: raw.player.number,
+    pos: raw.player.pos ?? undefined,
+    grid: raw.player.grid ?? undefined,
+  }
+}
+
+function normalizeTeamLineup(raw: ApiFootballTeamLineup): TeamLineup {
+  const team: Team = {
+    id: String(raw.team.id),
+    name: raw.team.name,
+    logo: raw.team.logo,
+  }
+
+  return {
+    team,
+    formation: raw.formation || '',
+    coach: raw.coach?.name ?? undefined,
+    startXI: (raw.startXI || []).map(normalizeLineupPlayer),
+    substitutes: (raw.substitutes || []).map(normalizeLineupPlayer),
+  }
+}
+
+export function normalizeLineup(
+  lineups: ApiFootballTeamLineup[],
+  homeTeamId: string,
+  awayTeamId: string,
+): Lineup | undefined {
+  if (!lineups || lineups.length < 2) return undefined
+
+  const rawHome = lineups.find((l) => String(l.team.id) === homeTeamId)
+  const rawAway = lineups.find((l) => String(l.team.id) === awayTeamId)
+
+  if (!rawHome || !rawAway) return undefined
+
+  return {
+    home: normalizeTeamLineup(rawHome),
+    away: normalizeTeamLineup(rawAway),
+  }
 }

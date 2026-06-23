@@ -5,6 +5,9 @@ import type { Match } from '@/lib/types'
 import MatchSportDetailPage from '../page'
 import { useLiveMatchFloating } from '@/contexts/LiveMatchFloatingContext'
 
+const mockFetch = vi.fn()
+vi.stubGlobal('fetch', mockFetch)
+
 let capturedOnData: ((data: unknown) => void) | undefined
 let capturedLiveOnData: ((data: unknown) => void) | undefined
 let capturedPipOptions: Record<string, unknown> = {}
@@ -81,6 +84,11 @@ vi.mock('@/components/match/StatusBadge', () => ({
   StatusBadge: ({ status }: { status: string }) => <span data-testid="status">{status}</span>,
 }))
 
+const mockUseLineup = vi.fn()
+vi.mock('@/hooks/useLineup', () => ({
+  useLineup: (...args: unknown[]) => mockUseLineup(...args),
+}))
+
 const mockUseLiveMatchFloating = vi.mocked(useLiveMatchFloating)
 
 function makeMatch(overrides: Record<string, unknown> = {}) {
@@ -103,6 +111,14 @@ function makeMatch(overrides: Record<string, unknown> = {}) {
 describe('MatchSportDetailPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockFetch.mockReset()
+    mockUseLineup.mockReset()
+    mockUseLineup.mockReturnValue({
+      lineup: null,
+      loading: false,
+      error: null,
+      loadLineup: vi.fn(),
+    })
     mockParams = { id: 'football', matchId: 'f1' }
     capturedOnData = undefined
     capturedLiveOnData = undefined
@@ -131,6 +147,18 @@ describe('MatchSportDetailPage', () => {
       expect(screen.getByText('Arsenal')).toBeDefined()
       expect(screen.getByText('Chelsea')).toBeDefined()
     })
+  })
+
+  it('renders match information section heading', async () => {
+    render(<MatchSportDetailPage />)
+
+    capturedOnData?.({ match: makeMatch() })
+
+    await waitFor(() => {
+      expect(screen.getByText('Arsenal')).toBeDefined()
+    })
+
+    expect(screen.getByRole('heading', { name: /información del partido/i })).toBeDefined()
   })
 
   it('renders a basketball match from the direct match endpoint', async () => {
@@ -383,6 +411,172 @@ describe('MatchSportDetailPage', () => {
       await waitFor(() => {
         expect(setFloatingError).toHaveBeenCalledWith('Network error')
       })
+    })
+  })
+
+  describe('match summary highlights', () => {
+    it('renders a visible "Ver resumen del partido" button for football match', async () => {
+      render(<MatchSportDetailPage />)
+
+      capturedOnData?.({ match: makeMatch() })
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /ver resumen del partido/i })).toBeDefined()
+      })
+    })
+
+    it('opens modal and fetches /api/highlights with current match data', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          videoUrl: 'https://www.youtube.com/embed/abc123',
+          thumbnail: 'https://img.youtube.com/abc.jpg',
+          title: 'Arsenal vs Chelsea highlights',
+        }),
+      })
+
+      render(<MatchSportDetailPage />)
+
+      capturedOnData?.({ match: makeMatch() })
+
+      await waitFor(() => expect(screen.getByText('Arsenal')).toBeDefined())
+
+      fireEvent.click(screen.getByRole('button', { name: /ver resumen del partido/i }))
+
+      await waitFor(() => {
+        expect(mockFetch).toHaveBeenCalledOnce()
+        const url = mockFetch.mock.calls[0][0] as string
+        expect(url).toContain('/api/highlights?')
+        expect(url).toContain('matchId=f1')
+        expect(url).toContain(`homeTeam=${encodeURIComponent('Arsenal')}`)
+        expect(url).toContain(`awayTeam=${encodeURIComponent('Chelsea')}`)
+        expect(url).toContain('leagueName=Premier+League')
+        expect(url).toContain('leagueCountry=England')
+      })
+
+      await waitFor(() => {
+        expect(screen.getByTitle(/resumen del partido/i)).toBeDefined()
+      })
+    })
+
+    it('shows unavailable state when highlight has no videoUrl', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ videoUrl: null, thumbnail: null, title: null }),
+      })
+
+      render(<MatchSportDetailPage />)
+
+      capturedOnData?.({ match: makeMatch() })
+
+      await waitFor(() => expect(screen.getByText('Arsenal')).toBeDefined())
+
+      fireEvent.click(screen.getByRole('button', { name: /ver resumen del partido/i }))
+
+      await waitFor(() => {
+        expect(screen.getByText(/resumen no disponible/i)).toBeDefined()
+      })
+    })
+
+    it('shows error state when highlights request fails', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        json: async () => ({ error: 'Failed to search highlight video' }),
+      })
+
+      render(<MatchSportDetailPage />)
+
+      capturedOnData?.({ match: makeMatch() })
+
+      await waitFor(() => expect(screen.getByText('Arsenal')).toBeDefined())
+
+      fireEvent.click(screen.getByRole('button', { name: /ver resumen del partido/i }))
+
+      await waitFor(() => {
+        expect(screen.getByText(/no se pudo cargar el resumen/i)).toBeDefined()
+      })
+    })
+  })
+
+  describe('tabs', () => {
+    it('renders default summary tab for football', async () => {
+      render(<MatchSportDetailPage />)
+      capturedOnData?.({ match: makeMatch() })
+
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { name: /información del partido/i })).toBeDefined()
+      })
+
+      expect(screen.getByRole('tab', { name: /resumen/i })).toBeDefined()
+      expect(screen.getByRole('tab', { name: /cronología/i })).toBeDefined()
+      expect(screen.getByRole('tab', { name: /alineaciones/i })).toBeDefined()
+      expect(screen.getByRole('tab', { name: /transmisión/i })).toBeDefined()
+    })
+
+    it('does not fetch lineup on initial render for football', async () => {
+      const loadLineup = vi.fn()
+      mockUseLineup.mockReturnValue({
+        lineup: null,
+        loading: false,
+        error: null,
+        loadLineup,
+      })
+
+      render(<MatchSportDetailPage />)
+      capturedOnData?.({ match: makeMatch() })
+
+      await waitFor(() => expect(screen.getByText('Arsenal')).toBeDefined())
+
+      expect(loadLineup).not.toHaveBeenCalled()
+    })
+
+    it('fetches lineup once when activating lineups tab for football', async () => {
+      const loadLineup = vi.fn()
+      mockUseLineup.mockReturnValue({
+        lineup: null,
+        loading: false,
+        error: null,
+        loadLineup,
+      })
+
+      render(<MatchSportDetailPage />)
+      capturedOnData?.({ match: makeMatch() })
+
+      await waitFor(() => expect(screen.getByText('Arsenal')).toBeDefined())
+
+      expect(loadLineup).not.toHaveBeenCalled()
+
+      fireEvent.click(screen.getByRole('tab', { name: /alineaciones/i }))
+
+      await waitFor(() => {
+        expect(loadLineup).toHaveBeenCalledTimes(1)
+      })
+
+      fireEvent.click(screen.getByRole('tab', { name: /cronología/i }))
+      fireEvent.click(screen.getByRole('tab', { name: /alineaciones/i }))
+
+      expect(loadLineup).toHaveBeenCalledTimes(1)
+    })
+
+    it('does not show lineups tab for basketball', async () => {
+      mockParams = { id: 'basketball', matchId: 'b1' }
+      render(<MatchSportDetailPage />)
+      capturedOnData?.({ match: makeMatch({ id: 'b1', sport: 'basketball', homeTeam: { id: '3', name: 'Lakers', shortName: 'LAL', logo: '' }, awayTeam: { id: '4', name: 'Celtics', shortName: 'BOS', logo: '' } }) })
+
+      await waitFor(() => expect(screen.getByText('Lakers')).toBeDefined())
+
+      expect(screen.queryByRole('tab', { name: /alineaciones/i })).toBeNull()
+    })
+
+    it('does not show lineups tab for mma', async () => {
+      mockParams = { id: 'mma', matchId: 'm1' }
+      render(<MatchSportDetailPage />)
+      capturedOnData?.({ match: makeMatch({ id: 'm1', sport: 'mma', homeTeam: { id: '5', name: 'Fighter A', shortName: 'A', logo: '' }, awayTeam: { id: '6', name: 'Fighter B', shortName: 'B', logo: '' } }) })
+
+      await waitFor(() => expect(screen.getByText('Fighter A')).toBeDefined())
+
+      expect(screen.queryByRole('tab', { name: /alineaciones/i })).toBeNull()
     })
   })
 })
