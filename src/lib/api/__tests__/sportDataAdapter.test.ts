@@ -185,4 +185,10 @@ describe('ADAPTERS registry', () => {
     expect(typeof ADAPTERS.basketball.fetchFixtures).toBe('function')
     expect(typeof ADAPTERS.mma.fetchFixtures).toBe('function')
   })
+
+  it('only football adapter exposes optional fetchStandings', () => {
+    expect(ADAPTERS.football.fetchStandings).toBeDefined()
+    expect(ADAPTERS.basketball.fetchStandings).toBeUndefined()
+    expect(ADAPTERS.mma.fetchStandings).toBeUndefined()
+  })
 })

@@ -28,14 +28,19 @@ vi.mock('next/image', () => ({
     src,
     alt,
     className,
-  }: React.ImgHTMLAttributes<HTMLImageElement> & { fill?: boolean }) => (
-    <img src={src} alt={alt} className={className} />
+  }: React.ImgHTMLAttributes<HTMLImageElement>) => (
+    <img src={src || undefined} alt={alt || ''} className={className} />
   ),
 }))
 
 const mockUsePinnedLeagues = vi.fn()
 vi.mock('@/hooks/usePinnedLeagues', () => ({
   usePinnedLeagues: (...args: unknown[]) => mockUsePinnedLeagues(...args),
+}))
+
+const mockUseStandings = vi.fn()
+vi.mock('@/hooks/useStandings', () => ({
+  useStandings: (...args: unknown[]) => mockUseStandings(...args),
 }))
 
 const plMatch: Match = {
@@ -97,6 +102,13 @@ describe('MatchListCompact', () => {
       pinnedIds: [],
       togglePin: vi.fn(),
       isPinned: vi.fn().mockReturnValue(false),
+    })
+
+    mockUseStandings.mockReturnValue({
+      standings: null,
+      loading: false,
+      error: null,
+      loadStandings: vi.fn(),
     })
   })
 
@@ -176,5 +188,20 @@ describe('MatchListCompact', () => {
     renderMatchListCompact([upcoming], 'football')
     fireEvent.click(screen.getByText('FINALIZADOS'))
     expect(screen.getByText('Sin partidos hoy')).toBeDefined()
+  })
+
+  it('does not render Tabla button for football when standings feature is disabled', () => {
+    renderMatchListCompact([plMatch], 'football')
+    expect(screen.queryByRole('button', { name: /tabla/i })).toBeNull()
+  })
+
+  it('does not render Tabla button for non-football sports', () => {
+    renderMatchListCompact([plMatch], 'basketball')
+    expect(screen.queryByRole('button', { name: /tabla/i })).toBeNull()
+  })
+
+  it('does not render StandingsPanel for football when standings feature is disabled', () => {
+    renderMatchListCompact([plMatch], 'football')
+    expect(screen.queryByTestId('standings-panel')).toBeNull()
   })
 })

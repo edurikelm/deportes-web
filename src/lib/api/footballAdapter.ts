@@ -1,8 +1,8 @@
-import type { FetchFixturesOptions, LineupResult, SportDataAdapter } from './sportDataAdapter'
+import type { FetchFixturesOptions, FetchStandingsOptions, LineupResult, SportDataAdapter, StandingsResult } from './sportDataAdapter'
 import type { Match } from '@/lib/types'
-import type { ApiFootballMatch, ApiFootballLineupsResponse } from './types'
+import type { ApiFootballMatch, ApiFootballLineupsResponse, ApiFootballStandingsResponse } from './types'
 import { fetchWithCache } from './client'
-import { normalizeLineup, normalizeMatch } from './normalizer'
+import { normalizeLineup, normalizeMatch, normalizeStandings } from './normalizer'
 import { MOCK_MATCHES } from '@/lib/mock-data'
 import { resolveStreamLinks } from '@/lib/streaming-links'
 
@@ -159,5 +159,29 @@ export class FootballAdapter implements SportDataAdapter {
       cached: lineupsData.cached && fixtureData.cached,
       cacheAge: Math.min(lineupsData.cacheAge, fixtureData.cacheAge),
     }
+  }
+
+  async fetchStandings({ leagueId, season }: FetchStandingsOptions): Promise<StandingsResult> {
+    const apiKey = process.env.API_SPORTS_KEY
+
+    if (!apiKey) {
+      return { standings: null, cached: false, cacheAge: 0 }
+    }
+
+    const url = `https://v3.football.api-sports.io/standings?league=${leagueId}&season=${season}`
+
+    const { data, cached, cacheAge } = await fetchWithCache<ApiFootballStandingsResponse>(
+      url,
+      {},
+      600,
+      'API-Football-Standings',
+    )
+
+    if (data.errors && Object.keys(data.errors).length > 0) {
+      return { standings: null, cached, cacheAge }
+    }
+
+    const standings = normalizeStandings(data)
+    return { standings, cached, cacheAge }
   }
 }

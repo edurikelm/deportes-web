@@ -83,11 +83,10 @@ describe('SportPage', () => {
       vi.advanceTimersByTime(0)
     })
 
-    expect(screen.getByText('Todos')).toBeDefined()
-    const liveElements = screen.getAllByText('En vivo')
-    expect(liveElements.length).toBeGreaterThanOrEqual(1)
-    expect(screen.getByText('Próximos')).toBeDefined()
-    expect(screen.getByText('Finalizados')).toBeDefined()
+    expect(screen.getByText('TODOS')).toBeDefined()
+    expect(screen.getByText('EN DIRECTO')).toBeDefined()
+    expect(screen.getByText('PRÓXIMOS')).toBeDefined()
+    expect(screen.getByText('FINALIZADOS')).toBeDefined()
   })
 
   it('sends timezone query param to API based on visitor timezone', async () => {

@@ -1,12 +1,14 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react'
 import type { Match, Sport } from '@/lib/types'
 import { usePinnedLeagues } from '@/hooks/usePinnedLeagues'
 import { cn } from '@/lib/utils'
 import { SectionHeader } from './SectionHeader'
 import { MatchRow } from './MatchRow'
+import { StandingsPanel } from '@/components/league/StandingsPanel'
+import { inferSeasonForLeague, STANDINGS_FEATURE_ENABLED } from '@/lib/standings'
 
 interface MatchListCompactProps {
   matches: Match[]
@@ -63,7 +65,21 @@ export function MatchListCompact({
   onDateChange,
 }: MatchListCompactProps) {
   const [activeFilter, setActiveFilter] = useState<StatusFilter>('all')
+  const [standingsState, setStandingsState] = useState<{
+    contextKey: string
+    leagueId: string | null
+  }>(() => ({
+    contextKey: `${activeDate}:${sport}:all`,
+    leagueId: null,
+  }))
   const { pinnedIds, togglePin, isPinned: checkIsPinned } = usePinnedLeagues(sport)
+
+  const contextKey = useMemo(
+    () => `${activeDate}:${sport}:${activeFilter}`,
+    [activeDate, sport, activeFilter]
+  )
+  const openStandingsLeagueId =
+    standingsState.contextKey === contextKey ? standingsState.leagueId : null
 
   const liveCount = useMemo(() => {
     return matches.filter(m => m.status === 'live').length
@@ -95,6 +111,20 @@ export function MatchListCompact({
       return 0
     })
   }, [filteredMatches, pinnedIds])
+
+  const handleToggleStandings = useCallback(
+    (leagueId: string) => {
+      setStandingsState(prev => {
+        const currentLeagueId =
+          prev.contextKey === contextKey ? prev.leagueId : null
+        return {
+          contextKey,
+          leagueId: currentLeagueId === leagueId ? null : leagueId,
+        }
+      })
+    },
+    [contextKey]
+  )
 
   return (
     <div className="w-full max-w-6xl px-2 py-3 sm:px-4 lg:py-4">
@@ -169,7 +199,17 @@ export function MatchListCompact({
               league={group.league}
               isPinned={checkIsPinned(group.league.id)}
               onTogglePin={() => togglePin(group.league.id)}
+              sport={sport}
+              onToggleStandings={() => handleToggleStandings(group.league.id)}
+              standingsOpen={openStandingsLeagueId === group.league.id}
             />
+            {STANDINGS_FEATURE_ENABLED && openStandingsLeagueId === group.league.id && (
+              <StandingsPanel
+                leagueId={group.league.id}
+                sport={sport}
+                season={inferSeasonForLeague(activeDate, group.league)}
+              />
+            )}
             {group.matches.map(match => (
               <MatchRow key={match.id} match={match} />
             ))}

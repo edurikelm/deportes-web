@@ -110,6 +110,28 @@ export interface Lineup {
   away: TeamLineup
 }
 
+export type Season = number
+
+export interface StandingRow {
+  rank: number
+  team: Team
+  points: number
+  played: number
+  wins: number
+  draws: number
+  losses: number
+  goalsFor: number
+  goalsAgainst: number
+  goalDifference: number
+  group?: string
+}
+
+export interface LeagueStandings {
+  league: League
+  season: Season
+  standings: StandingRow[]
+}
+
 export interface Match {
   id: string
   sport: Sport

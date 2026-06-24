@@ -23,6 +23,19 @@ Alineación de un equipo específico dentro de un Match. Contiene `team`, `forma
 ### LineupPlayer (Jugador en Alineación)
 Jugador dentro de una alineación. Campos: `id`, `name`, `number`, `pos?`, `grid?`, `photo?`. `grid` preserva la posición raw de API-Football para renderizar la cancha.
 
+### Season (Temporada)
+Año de inicio de una competencia futbolística. Tipo numérico (`number`) usado para consultar tablas de posiciones.
+
+La UI determina el año de season con `inferSeasonForLeague`: las ligas europeas estacionales conocidas (ids 39, 140, 78, 135, 61) usan el año de inicio de la temporada; torneos y ligas que siguen el calendario anual (World Cup, Libertadores, Argentina, Brasil, Chile, etc.) usan el año visible. El endpoint conserva `inferSeasonFromDate` como fallback cuando no recibe `season` explícito, pero la UI debe enviar `season` de forma explícita.
+
+### StandingRow (Fila de Tabla de Posiciones)
+Entrada de una tabla de posiciones para un equipo: `rank`, `team`, `points`, `played`, `wins`, `draws`, `losses`, `goalsFor`, `goalsAgainst`, `goalDifference`, y `group?` para competencias con fase de grupos.
+
+### LeagueStandings (Tabla de Posiciones de Liga)
+Agrupación de `StandingRow` para una `League` y una `Season` específicas. Modelo interno normalizado a partir de la respuesta cruda de API-Football `/standings`.
+
+**Estado actual:** la funcionalidad está implementada internamente (adapter, normalización, UI de tabla), pero el botón "Tabla" en `SectionHeader` está deshabilitado globalmente via `STANDINGS_FEATURE_ENABLED=false`. La razón es que el plan actual de API-Football no permite consultar temporadas en curso; la intención de producto es mostrar solo la tabla actual — sin temporadas antiguas — por lo que sin acceso a la temporada activa, la feature no cumple su promesa y se mantiene apagada.
+
 ### MatchEvent (Evento de Partido)
 Gol, tarjeta amarilla/roja, penal, sustitución para fútbol. El campo `detail` propaga subtipos (Penalty, Own Goal, Missed Penalty, Yellow Card, Red Card). Tipos desconocidos mapean a `'unknown'` — **no** caen a `'goal'` para evitar falsos goleadores. Para otros deportes, campos opcionales genéricos (`extra?: Record<string, unknown>`) permiten flexibilidad. Tipo, minuto, jugador, equipo. No todos los partidos tienen eventos — campo opcional.
 
@@ -117,6 +130,8 @@ Módulo de página único parametrizado por `Sport`. Unifica tabs, polling, skel
 
 ### SportDataAdapter
 Interfaz que abstrae el fetching de partidos por deporte: `fetchFixtures({ date, isLive, timeZone? }) => Promise<Match[]>`. Cada deporte implementa su adapter (football → API-Football v3, basketball → NBA API, MMA → MMA API). La API route delega al adapter según `?sport=` — un solo endpoint en vez de tres.
+
+La interfaz también expone `fetchStandings?({ leagueId, season }) => Promise<StandingsResult>` como método **opcional**. Solo el adapter de football lo implementa; basketball y MMA no disponen de tablas de posiciones en esta abstracción. El llamador debe verificar `if (adapter.fetchStandings)` antes de invocarlo, igual que con `fetchLineup`.
 
 ### All-Sports API
 El endpoint `/api/matches` acepta `sport=all` para consultar todos los deportes en paralelo. Usa `Promise.allSettled` internamente: si falla un deporte, los resultados de los demás se retornan igual. Si fallan todos, la respuesta es `500`. La página `/live` usa `sport=all` para mostrar un feed unificado.

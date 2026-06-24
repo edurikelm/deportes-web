@@ -98,3 +98,50 @@ export interface ApiFootballLineupsResponse {
   response?: ApiFootballTeamLineup[]
   errors?: Record<string, unknown>
 }
+
+export interface ApiFootballStandingTeam {
+  id: number
+  name: string
+  logo: string
+}
+
+export interface ApiFootballStandingRecord {
+  played: number
+  win: number
+  draw: number
+  lose: number
+  goals: {
+    for: number
+    against: number
+  }
+}
+
+export interface ApiFootballStandingEntry {
+  rank: number
+  team: ApiFootballStandingTeam
+  points: number
+  goalsDiff: number
+  group?: string
+  form?: string
+  status?: string
+  description?: string
+  all: ApiFootballStandingRecord
+  home?: ApiFootballStandingRecord
+  away?: ApiFootballStandingRecord
+  update?: string
+}
+
+export interface ApiFootballStandingLeague {
+  id: number
+  name: string
+  country: string
+  logo: string
+  flag?: string
+  season: number
+  standings: ApiFootballStandingEntry[][]
+}
+
+export interface ApiFootballStandingsResponse {
+  response?: Array<{ league: ApiFootballStandingLeague }>
+  errors?: Record<string, unknown>
+}

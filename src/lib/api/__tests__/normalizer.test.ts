@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { normalizeMatch } from '../normalizer'
-import type { ApiFootballMatch } from '../types'
+import { normalizeMatch, normalizeStandings } from '../normalizer'
+import type { ApiFootballMatch, ApiFootballStandingsResponse } from '../types'
 
 function makeRaw(overrides: Partial<ApiFootballMatch> = {}): ApiFootballMatch {
   return {
@@ -148,5 +148,121 @@ describe('normalizeMatch', () => {
     const result = normalizeMatch(raw)
 
     expect(result.events[0].minute).toBe(47)
+  })
+})
+
+function makeStandingsResponse(overrides: Partial<ApiFootballStandingsResponse> = {}): ApiFootballStandingsResponse {
+  return {
+    response: [
+      {
+        league: {
+          id: 39,
+          name: 'Premier League',
+          country: 'England',
+          logo: '/pl.png',
+          season: 2024,
+          standings: [
+            [
+              {
+                rank: 1,
+                team: { id: 1, name: 'Liverpool', logo: '/liv.png' },
+                points: 80,
+                goalsDiff: 45,
+                all: { played: 34, win: 25, draw: 5, lose: 4, goals: { for: 78, against: 33 } },
+              },
+              {
+                rank: 2,
+                team: { id: 2, name: 'Arsenal', logo: '/ars.png' },
+                points: 78,
+                goalsDiff: 40,
+                all: { played: 34, win: 24, draw: 6, lose: 4, goals: { for: 75, against: 35 } },
+              },
+            ],
+          ],
+        },
+      },
+    ],
+    ...overrides,
+  }
+}
+
+describe('normalizeStandings', () => {
+  it('returns null for empty response', () => {
+    expect(normalizeStandings({ response: [] })).toBeNull()
+  })
+
+  it('returns null when standings array is empty', () => {
+    const raw = makeStandingsResponse({
+      response: [{ league: { id: 39, name: 'Premier League', country: 'England', logo: '', season: 2024, standings: [] } }],
+    })
+    expect(normalizeStandings(raw)).toBeNull()
+  })
+
+  it('normalizes single group standings', () => {
+    const raw = makeStandingsResponse()
+    const result = normalizeStandings(raw)
+
+    expect(result).toBeDefined()
+    expect(result?.league.id).toBe('39')
+    expect(result?.league.name).toBe('Premier League')
+    expect(result?.season).toBe(2024)
+    expect(result?.standings).toHaveLength(2)
+    expect(result?.standings[0]).toEqual({
+      rank: 1,
+      team: { id: '1', name: 'Liverpool', logo: '/liv.png' },
+      points: 80,
+      played: 34,
+      wins: 25,
+      draws: 5,
+      losses: 4,
+      goalsFor: 78,
+      goalsAgainst: 33,
+      goalDifference: 45,
+    })
+    expect(result?.standings[1].team.name).toBe('Arsenal')
+  })
+
+  it('normalizes multiple groups into rows with group field', () => {
+    const raw = makeStandingsResponse({
+      response: [
+        {
+          league: {
+            id: 2,
+            name: 'World Cup',
+            country: 'World',
+            logo: '',
+            season: 2026,
+            standings: [
+              [
+                {
+                  rank: 1,
+                  team: { id: 10, name: 'Argentina', logo: '' },
+                  points: 9,
+                  goalsDiff: 5,
+                  group: 'Group A',
+                  all: { played: 3, win: 3, draw: 0, lose: 0, goals: { for: 7, against: 2 } },
+                },
+              ],
+              [
+                {
+                  rank: 1,
+                  team: { id: 11, name: 'Brazil', logo: '' },
+                  points: 7,
+                  goalsDiff: 4,
+                  group: 'Group B',
+                  all: { played: 3, win: 2, draw: 1, lose: 0, goals: { for: 6, against: 2 } },
+                },
+              ],
+            ],
+          },
+        },
+      ],
+    })
+
+    const result = normalizeStandings(raw)
+
+    expect(result?.standings).toHaveLength(2)
+    expect(result?.standings[0].group).toBe('Group A')
+    expect(result?.standings[1].group).toBe('Group B')
   })
 })

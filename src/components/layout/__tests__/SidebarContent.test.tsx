@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { SidebarContent } from '../SidebarContent'
 
 const { mockPinnedIds, mockUsePathname, mockUseSearchParams } = vi.hoisted(() => {
-  let pinnedIds: string[] = []
+  const pinnedIds: string[] = []
 
   return {
     mockPinnedIds: pinnedIds,
@@ -41,17 +41,16 @@ beforeEach(() => {
 describe('SidebarContent', () => {
   it('shows pin icon that calls togglePin when clicked', () => {
     render(<SidebarContent />)
-    const premierLink = screen.getByText('Premier League').closest('a')!
-    const pinBtn = premierLink.querySelector('button')
+    const pinBtn = screen.getByRole('button', { name: /Fijar Premier League/ })
     expect(pinBtn).toBeDefined()
-    fireEvent.click(pinBtn!)
+    fireEvent.click(pinBtn)
     expect(mockTogglePin).toHaveBeenCalledWith('39')
   })
 
   it('highlights active league when liga param is present', () => {
     mockUseSearchParams.mockReturnValue(new URLSearchParams('liga=39'))
     render(<SidebarContent />)
-    const premierLink = screen.getByText('Premier League').closest('a')!
+    const premierLink = screen.getByText('Premier League').closest('div')!
     expect(premierLink.className).toContain('bg-[#1a1a1a]')
     expect(premierLink.className).toContain('text-white')
   })
@@ -68,8 +67,8 @@ describe('SidebarContent', () => {
   it('shows filled pin icon for pinned leagues', () => {
     mockPinnedIds.push('39')
     render(<SidebarContent />)
-    const premierLink = screen.getByText('Premier League').closest('a')!
-    const pinSvg = premierLink.querySelector('button svg')
+    const pinBtn = screen.getByRole('button', { name: /Desfijar Premier League/ })
+    const pinSvg = pinBtn.querySelector('svg')
     expect(pinSvg?.getAttribute('class')).toContain('fill-current')
   })
 

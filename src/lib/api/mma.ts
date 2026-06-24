@@ -7,6 +7,7 @@ const BASE_URL = 'https://v1.mma.api-sports.io'
 
 interface MmaApiResponse {
   response: MmaFixture[]
+  errors?: Record<string, unknown>
 }
 
 interface MmaFixture {
@@ -195,7 +196,7 @@ export async function fetchMmaFixtures(date: string, isLive = false): Promise<{
     'MMA API'
   )
 
-  const errors = (data as any).errors
+  const errors = data.errors
   if (errors && Object.keys(errors).length > 0) {
     console.error(`MMA API errors:`, errors)
     return { matches: [], cached: false, cacheAge: 0 }

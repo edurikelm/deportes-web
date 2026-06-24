@@ -1,17 +1,30 @@
 'use client'
 
-import type { League } from '@/lib/types'
+import type { League, Sport } from '@/lib/types'
 import Image from 'next/image'
-import { Pin, PinOff } from 'lucide-react'
+import { Pin, PinOff, Table } from 'lucide-react'
+import { STANDINGS_FEATURE_ENABLED } from '@/lib/standings'
 import { cn } from '@/lib/utils'
 
 interface SectionHeaderProps {
   league: League
   isPinned: boolean
   onTogglePin: () => void
+  sport: Sport
+  onToggleStandings?: () => void
+  standingsOpen?: boolean
 }
 
-export function SectionHeader({ league, isPinned, onTogglePin }: SectionHeaderProps) {
+export function SectionHeader({
+  league,
+  isPinned,
+  onTogglePin,
+  sport,
+  onToggleStandings,
+  standingsOpen,
+}: SectionHeaderProps) {
+  const showStandingsButton = STANDINGS_FEATURE_ENABLED && sport === 'football'
+
   return (
     <div
       data-testid="section-header"
@@ -27,17 +40,33 @@ export function SectionHeader({ league, isPinned, onTogglePin }: SectionHeaderPr
           <div className="text-xs text-[#8a8a8a]">{league.country}</div>
         </div>
       </div>
-      <button
-        type="button"
-        aria-label={isPinned ? `Desfijar ${league.name}` : `Fijar ${league.name}`}
-        onClick={onTogglePin}
-        className={cn(
-          'rounded p-1 transition-colors hover:bg-[#262626]',
-          isPinned ? 'text-[#22c55e]' : 'text-[#666] opacity-40 group-hover:opacity-100'
+      <div className="flex items-center gap-1">
+        {showStandingsButton && (
+          <button
+            type="button"
+            aria-label="Tabla"
+            aria-pressed={standingsOpen}
+            onClick={() => onToggleStandings?.()}
+            className={cn(
+              'rounded p-1 transition-colors hover:bg-[#262626]',
+              standingsOpen ? 'text-[#22c55e]' : 'text-[#a1a1aa] opacity-60 group-hover:opacity-100'
+            )}
+          >
+            <Table className="h-4 w-4" />
+          </button>
         )}
-      >
-        {isPinned ? <Pin className="h-4 w-4" /> : <PinOff className="h-4 w-4" />}
-      </button>
+        <button
+          type="button"
+          aria-label={isPinned ? `Desfijar ${league.name}` : `Fijar ${league.name}`}
+          onClick={onTogglePin}
+          className={cn(
+            'rounded p-1 transition-colors hover:bg-[#262626]',
+            isPinned ? 'text-[#22c55e]' : 'text-[#666] opacity-40 group-hover:opacity-100'
+          )}
+        >
+          {isPinned ? <Pin className="h-4 w-4" /> : <PinOff className="h-4 w-4" />}
+        </button>
+      </div>
     </div>
   )
 }

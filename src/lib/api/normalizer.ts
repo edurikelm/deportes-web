@@ -1,5 +1,5 @@
-import type { Lineup, LineupPlayer, Match, MatchEvent, Sport, StreamLink, Team, TeamLineup } from '@/lib/types'
-import type { ApiFootballMatch, ApiFootballTeamLineup } from './types'
+import type { LeagueStandings, Lineup, LineupPlayer, Match, MatchEvent, Sport, StandingRow, StreamLink, Team, TeamLineup } from '@/lib/types'
+import type { ApiFootballMatch, ApiFootballStandingEntry, ApiFootballStandingsResponse, ApiFootballTeamLineup } from './types'
 
 type ApiFootballEventTime = NonNullable<ApiFootballMatch['events']>[number]['time']
 
@@ -174,5 +174,50 @@ export function normalizeLineup(
   return {
     home: normalizeTeamLineup(rawHome),
     away: normalizeTeamLineup(rawAway),
+  }
+}
+
+function normalizeStandingEntry(entry: ApiFootballStandingEntry): StandingRow {
+  const all = entry.all
+  return {
+    rank: entry.rank,
+    team: {
+      id: String(entry.team.id),
+      name: entry.team.name,
+      logo: entry.team.logo,
+    },
+    points: entry.points,
+    played: all.played,
+    wins: all.win,
+    draws: all.draw,
+    losses: all.lose,
+    goalsFor: all.goals.for,
+    goalsAgainst: all.goals.against,
+    goalDifference: entry.goalsDiff ?? all.goals.for - all.goals.against,
+    group: entry.group,
+  }
+}
+
+export function normalizeStandings(raw: ApiFootballStandingsResponse): LeagueStandings | null {
+  const league = raw.response?.[0]?.league
+  if (!league || !league.standings || league.standings.length === 0) {
+    return null
+  }
+
+  const rows = league.standings.flat().map(normalizeStandingEntry)
+  if (rows.length === 0) {
+    return null
+  }
+
+  return {
+    league: {
+      id: String(league.id),
+      name: league.name,
+      country: league.country,
+      logo: league.logo,
+      color: '#262626',
+    },
+    season: league.season,
+    standings: rows,
   }
 }

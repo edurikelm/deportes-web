@@ -1,0 +1,3 @@
+# Tabla de posiciones deshabilitada por limitacion de API-Football
+
+El botón "Tabla" en la UI de partidos football está deshabilitado globalmente via `STANDINGS_FEATURE_ENABLED=false` a pesar de que la implementación interna (adapter, normalización, renderizado de filas) está completa. El plan actual de API-Football no permite consultar la temporada en curso de forma confiable, y la intención de producto es mostrar exclusivamente la tabla actual — sin históricas. Sin acceso a la temporada activa, la feature no cumple su promesa y se mantiene apagada hasta que el plan de API lo permita o se implemente un workaround.

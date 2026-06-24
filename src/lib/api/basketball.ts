@@ -7,6 +7,7 @@ const BASE_URL = 'https://v2.nba.api-sports.io'
 
 interface NbaApiResponse {
   response: NbaFixture[]
+  errors?: Record<string, unknown>
 }
 
 interface NbaFixture {
@@ -195,7 +196,7 @@ export async function fetchNbaFixtures(date: string, isLive = false): Promise<{
     'NBA API'
   )
 
-    const errors = (data as any).errors
+    const errors = data.errors
   if (errors && Object.keys(errors).length > 0) {
     console.error(`Basketball API errors:`, errors)
     return { matches: [], cached: false, cacheAge: 0 }

@@ -221,3 +221,80 @@ describe('FootballAdapter.fetchLineup', () => {
     expect(lineup).toBeUndefined()
   })
 })
+
+describe('FootballAdapter.fetchStandings', () => {
+  beforeEach(() => {
+    clearCache()
+    mockFetch.mockReset()
+    vi.stubEnv('API_SPORTS_KEY', 'test-key')
+  })
+
+  it('returns normalized standings from API', async () => {
+    const apiResponse = {
+      response: [
+        {
+          league: {
+            id: 39,
+            name: 'Premier League',
+            country: 'England',
+            logo: '',
+            season: 2024,
+            standings: [
+              [
+                {
+                  rank: 1,
+                  team: { id: 1, name: 'Liverpool', logo: '/liv.png' },
+                  points: 80,
+                  goalsDiff: 45,
+                  all: { played: 34, win: 25, draw: 5, lose: 4, goals: { for: 78, against: 33 } },
+                },
+              ],
+            ],
+          },
+        },
+      ],
+    }
+
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      json: () => Promise.resolve(apiResponse),
+    })
+
+    const adapter = new FootballAdapter()
+    const result = await adapter.fetchStandings({ leagueId: '39', season: 2024 })
+
+    expect(mockFetch).toHaveBeenCalledTimes(1)
+    const calledUrl = mockFetch.mock.calls[0][0]
+    expect(calledUrl).toContain('league=39')
+    expect(calledUrl).toContain('season=2024')
+    expect(result.standings).toBeDefined()
+    expect(result.standings?.league.name).toBe('Premier League')
+    expect(result.standings?.standings[0].team.name).toBe('Liverpool')
+    expect(result.cached).toBe(false)
+  })
+
+  it('returns null standings when API response is empty', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      json: () => Promise.resolve({ response: [] }),
+    })
+
+    const adapter = new FootballAdapter()
+    const result = await adapter.fetchStandings({ leagueId: '39', season: 2024 })
+
+    expect(result.standings).toBeNull()
+  })
+
+  it('returns null without fetching when API key is missing', async () => {
+    vi.stubEnv('API_SPORTS_KEY', '')
+    const adapter = new FootballAdapter()
+    const result = await adapter.fetchStandings({ leagueId: '39', season: 2024 })
+
+    expect(mockFetch).not.toHaveBeenCalled()
+    expect(result.standings).toBeNull()
+  })
+})
