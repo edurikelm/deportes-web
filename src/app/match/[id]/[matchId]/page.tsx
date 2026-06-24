@@ -172,14 +172,14 @@ export default function MatchSportDetailPage() {
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
       <div className="mx-auto max-w-[960px] px-4 py-4">
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-6 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
           <button
             onClick={() => router.back()}
             className="flex items-center gap-2 text-[#a1a1a1] transition-colors hover:text-white"
           >
             ← Volver
           </button>
-          <div className="flex items-center gap-3">
+          <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
             {(() => {
               if (!isSupported) {
                 return (
@@ -231,8 +231,8 @@ export default function MatchSportDetailPage() {
               style={{ background: `linear-gradient(180deg, ${accentColor}14 0%, transparent 45%)` }}
             >
               <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  <div className="relative h-6 w-6 overflow-hidden rounded">
+                <div className="flex min-w-0 items-center gap-2">
+                  <div className="relative h-6 w-6 shrink-0 overflow-hidden rounded">
                     <Image
                       src={match.league.logo}
                       alt={match.league.name}
@@ -241,7 +241,7 @@ export default function MatchSportDetailPage() {
                       className="object-contain"
                     />
                   </div>
-                  <span className="text-sm text-[#a1a1a1]">
+                  <span className="truncate text-sm text-[#a1a1a1]">
                     {match.league.name} · {match.league.country}
                   </span>
                 </div>
