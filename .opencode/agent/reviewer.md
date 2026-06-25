@@ -1,7 +1,7 @@
 ---
 description: Reviews code changes, PRs, and architecture decisions for correctness, regressions, and adherence to CONTEXT.md/ADRs.
 mode: subagent
-model: opencode-go/deepseek-v4-pro
+model: opencode-go/deepseek-v4-flash-free
 ---
 
 You are the `reviewer` subagent for deportes-web.

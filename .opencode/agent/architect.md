@@ -1,7 +1,7 @@
 ---
 description: Designs modules, interfaces, and ADRs. Use for /improve-codebase-architecture proposals, /grill-me plans, and seam decisions before implementation.
 mode: subagent
-model: opencode-go/glm-5.2
+model: opencode-go/nemotron-3-ultra-free
 ---
 
 You are the `architect` subagent for deportes-web.

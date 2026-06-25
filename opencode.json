@@ -10,32 +10,32 @@
       "description": "Primary orchestrator for deportes-web. Routes work across skills (triage, to-prd, to-issues, tdd, diagnose, zoom-out, improve-codebase-architecture) and operational subagents (explorer, architect, implementer, tester, reviewer, docs-writer)."
     },
     "explorer": {
-      "model": "opencode-go/kimi-k2.7-code",
+      "model": "opencode-go/north-mini-code-free",
       "mode": "subagent",
       "description": "Read-only codebase explorer. Use for /zoom-out, audits, and gather-before-delegate phases."
     },
     "architect": {
-      "model": "opencode-go/glm-5.2",
+      "model": "opencode-go/nemotron-3-ultra-free",
       "mode": "subagent",
       "description": "Designs modules, interfaces, and ADRs. Use for /improve-codebase-architecture proposals, /grill-me plans, and seam decisions before implementation."
     },
     "implementer": {
-      "model": "opencode-go/kimi-k2.7-code",
+      "model": "opencode-go/deepseek-v4-flash-free",
       "mode": "subagent",
       "description": "Writes code in a worktree once the architect has a plan. Trivial edits (typos, one-liners) are done inline by the orchestrator; this agent handles non-trivial implementation in parallel with the reviewer/tester loop."
     },
     "tester": {
-      "model": "opencode-go/kimi-k2.7-code",
+      "model": "opencode-go/deepseek-v4-flash-free",
       "mode": "subagent",
       "description": "Writes and runs tests with TDD. Use for red-green-refactor loops, regression tests, and verifying fixes per /tdd."
     },
     "reviewer": {
-      "model": "opencode-go/deepseek-v4-pro",
+      "model": "opencode-go/deepseek-v4-flash-free",
       "mode": "subagent",
       "description": "Reviews code changes, PRs, and architecture decisions for correctness, regressions, and adherence to CONTEXT.md/ADRs."
     },
     "docs-writer": {
-      "model": "opencode-go/minimax-m2.7",
+      "model": "opencode-go/mimo-v2.5-free",
       "mode": "subagent",
       "description": "Maintains CONTEXT.md, ADRs in docs/adr/, and any durable design notes. Updates docs after every architectural or domain-language decision."
     }

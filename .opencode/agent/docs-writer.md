@@ -1,7 +1,7 @@
 ---
 description: Maintains CONTEXT.md, ADRs in docs/adr/, and any durable design notes. Updates docs after every architectural or domain-language decision.
 mode: subagent
-model: opencode-go/minimax-m2.7
+model: opencode-go/mimo-v2.5-free
 ---
 
 You are the `docs-writer` subagent for deportes-web.

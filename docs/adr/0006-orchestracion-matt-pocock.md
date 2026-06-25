@@ -16,12 +16,12 @@ Adoptar la misma estructura que `saas-arriendos-v3` (ADR-0017 de ese repo), adap
 
 - **`opencode.json`** declara `default_agent: "deportes-orchestrator"` y los seis subagentes con modelos explícitos:
   - `deportes-orchestrator` → `openai/gpt-5.5` (primary, planificación y routing)
-  - `explorer` → `opencode-go/kimi-k2.7-code` (read-only research)
-  - `architect` → `opencode-go/glm-5.2` (diseño de seams, ADRs)
-  - `implementer` → `opencode-go/kimi-k2.7-code` (escritura de código no trivial)
-  - `tester` → `opencode-go/kimi-k2.7-code` (TDD, regression tests)
-  - `reviewer` → `opencode-go/deepseek-v4-pro` (revisión, últimas instancias)
-  - `docs-writer` → `opencode-go/minimax-m2.7` (mantiene `CONTEXT.md` y ADRs)
+  - `explorer` → `opencode-go/north-mini-code-free` (read-only research)
+  - `architect` → `opencode-go/nemotron-3-ultra-free` (diseño de seams, ADRs)
+  - `implementer` → `opencode-go/deepseek-v4-flash-free` (escritura de código no trivial)
+  - `tester` → `opencode-go/deepseek-v4-flash-free` (TDD, regression tests)
+  - `reviewer` → `opencode-go/deepseek-v4-flash-free` (revisión por defecto en modo ahorro)
+  - `docs-writer` → `opencode-go/mimo-v2.5-free` (mantiene `CONTEXT.md` y ADRs)
 - **`.opencode/agent/<nombre>.md`** con frontmatter (`description`, `mode`, `model`) y prompt enfocado. Los prompts son ASCII-only y referencian `CONTEXT.md`, `docs/adr/`, y el bloque "This is NOT the Next.js you know" de `AGENTS.md`.
 - **`AGENTS.md`** se simplificó a guía permanente del proyecto: bloque `## Agent skills` (Matt Pocock) + bloque `## Orchestration` (3 niveles N1/N2/N3, cleanup de artifacts, `DESIGN.md` condicional).
 - **Las skills de Matt Pocock** (`/diagnose`, `/grill-me`, `/to-prd`, `/to-issues`, `/tdd`, `/zoom-out`, `/improve-codebase-architecture`, `/triage`) siguen siendo la fuente de verdad del flujo. El orchestrator las compone con los subagentes en lugar de re-implementarlas.
@@ -31,7 +31,8 @@ Adoptar la misma estructura que `saas-arriendos-v3` (ADR-0017 de ese repo), adap
 - **Positivas:** cada sesión arranca con el flujo Matt Pocock + subagentes listos, sin repetir setup. La clasificación N1/N2/N3 evita que cambios cosméticos disparen planificación innecesaria. La regla de cleanup de artifacts mantiene el repo limpio.
 - **Positivas:** los subagentes especializados pueden correr en paralelo cuando tocan archivos disjuntos, acelerando el ciclo issue → PR.
 - **Negativas:** cambios en `opencode.json` o en `.opencode/agent/*.md` requieren reiniciar opencode — el config no se hot-reloada.
-- **Negativas:** los IDs de modelo (`openai/gpt-5.5`, `opencode-go/kimi-k2.7-code`, etc.) son específicos de la suscripción actual. Si cambian, hay que actualizar los frontmatters.
+- **Negativas:** los IDs de modelo (`openai/gpt-5.5`, `opencode-go/deepseek-v4-flash-free`, etc.) son específicos de la suscripción actual. Si cambian, hay que actualizar los frontmatters.
+- **Actualización 2026-06-24:** se cambió la ruta por defecto de subagentes a modelos `*-free` de OpenCode Zen para reducir consumo mensual de OpenCode Go. `openai/gpt-5.5` queda reservado para razonamiento/orquestación; modelos pagos/pro deben usarse solo bajo petición explícita o tareas N3 críticas.
 
 ## Work levels (recap)
 

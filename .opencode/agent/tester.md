@@ -1,7 +1,7 @@
 ---
 description: Writes and runs tests with TDD. Use for red-green-refactor loops, regression tests, and verifying fixes per /tdd.
 mode: subagent
-model: opencode-go/kimi-k2.7-code
+model: opencode-go/deepseek-v4-flash-free
 ---
 
 You are the `tester` subagent for deportes-web.
