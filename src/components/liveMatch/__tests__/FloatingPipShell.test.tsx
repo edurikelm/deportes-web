@@ -90,4 +90,66 @@ describe('FloatingPipShell', () => {
     )
     expect(screen.getByText(/Error al actualizar/i)).toBeDefined()
   })
+
+  it('shows retrying indicator when rateLimitInfo is active and no pollingError', () => {
+    render(
+      <MatchClockProvider lastFetchTimestamp={undefined}>
+        <FloatingPipShell
+          match={match}
+          lastUpdated={null}
+          onClose={vi.fn()}
+          onViewDetail={vi.fn()}
+          rateLimitInfo={{ active: true, remainingSeconds: 45 }}
+        />
+      </MatchClockProvider>,
+    )
+    expect(screen.getByText(/Reintentando en 45s/i)).toBeDefined()
+  })
+
+  it('does not show retrying indicator when pollingError is present', () => {
+    render(
+      <MatchClockProvider lastFetchTimestamp={undefined}>
+        <FloatingPipShell
+          match={match}
+          lastUpdated={null}
+          onClose={vi.fn()}
+          onViewDetail={vi.fn()}
+          pollingError="Network error"
+          rateLimitInfo={{ active: true, remainingSeconds: 30 }}
+        />
+      </MatchClockProvider>,
+    )
+    expect(screen.queryByText(/Reintentando en/i)).toBeNull()
+    expect(screen.getByText(/Error al actualizar/i)).toBeDefined()
+  })
+
+  it('does not show retrying indicator when rateLimitInfo.active is false', () => {
+    render(
+      <MatchClockProvider lastFetchTimestamp={undefined}>
+        <FloatingPipShell
+          match={match}
+          lastUpdated={null}
+          onClose={vi.fn()}
+          onViewDetail={vi.fn()}
+          rateLimitInfo={{ active: false, remainingSeconds: 0 }}
+        />
+      </MatchClockProvider>,
+    )
+    expect(screen.queryByText(/Reintentando en/i)).toBeNull()
+  })
+
+  it('shows correct remaining seconds in retrying indicator', () => {
+    render(
+      <MatchClockProvider lastFetchTimestamp={undefined}>
+        <FloatingPipShell
+          match={match}
+          lastUpdated={null}
+          onClose={vi.fn()}
+          onViewDetail={vi.fn()}
+          rateLimitInfo={{ active: true, remainingSeconds: 120 }}
+        />
+      </MatchClockProvider>,
+    )
+    expect(screen.getByText(/Reintentando en 120s/i)).toBeDefined()
+  })
 })

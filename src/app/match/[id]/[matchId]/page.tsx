@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import type { Match } from '@/lib/types'
@@ -51,6 +51,7 @@ export default function MatchSportDetailPage() {
   const matchId = params.matchId as string
   const [match, setMatch] = useState<Match | null>(null)
   const [loading, setLoading] = useState(true)
+  const matchRef = useRef<Match | null>(null)
 
   const isValidSport = useMemo(() => VALID_SPORTS.includes(sport), [sport])
 
@@ -84,6 +85,7 @@ export default function MatchSportDetailPage() {
       const matches = (data as { matches: Match[] }).matches || []
       const found = matches.find((m: Match) => m.id === matchId)
       if (found) {
+        matchRef.current = found
         updateFloatingContent(found, new Date())
         setMatch(found)
         setLoading(false)
@@ -96,6 +98,12 @@ export default function MatchSportDetailPage() {
       setFloatingError(pipPolling.error ?? null)
     }
   }, [pipPolling.error, isFloatingOpen, setFloatingError])
+
+  useEffect(() => {
+    if (isFloatingOpen && matchRef.current) {
+      updateFloatingContent(matchRef.current, new Date(), pipPolling.rateLimitInfo)
+    }
+  }, [isFloatingOpen, pipPolling.rateLimitInfo, updateFloatingContent])
 
   if (!isValidSport) {
     return (

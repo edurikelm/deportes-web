@@ -23,7 +23,7 @@ export interface UseLiveMatchFloatingReturn {
   isFloatingOpen: boolean
   floatingMatch: Match | null
   openFloatingMatch: (match: Match, lastUpdated: Date | null) => void
-  updateFloatingContent: (match: Match, lastUpdated: Date | null) => void
+  updateFloatingContent: (match: Match, lastUpdated: Date | null, rateLimitInfo?: { active: boolean; remainingSeconds: number }) => void
   closeFloatingMatch: () => void
   setFloatingError: (error: string | null) => void
   lastUpdated: Date | null
@@ -108,7 +108,7 @@ export function LiveMatchFloatingProvider({
   }, [])
 
   const updateFloatingContent = useCallback(
-    (match: Match, newLastUpdated: Date | null) => {
+    (match: Match, newLastUpdated: Date | null, rateLimitInfo?: { active: boolean; remainingSeconds: number }) => {
       if (!pipWindowRef.current) return
       if (!rootRef.current) return
 
@@ -120,12 +120,13 @@ export function LiveMatchFloatingProvider({
           match={match}
           lastUpdated={newLastUpdated}
           pollingError={pipError}
+          rateLimitInfo={rateLimitInfo}
           onClose={closeFloatingMatch}
           onViewDetail={handleViewDetail}
         />,
       )
     },
-    [closeFloatingMatch, handleViewDetail],
+    [closeFloatingMatch, handleViewDetail, pipError],
   )
 
   const openFloatingMatch = useCallback(
