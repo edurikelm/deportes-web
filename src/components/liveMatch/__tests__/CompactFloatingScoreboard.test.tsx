@@ -117,7 +117,7 @@ describe('CompactFloatingScoreboard', () => {
     expect(screen.getByText('FT')).toBeDefined()
   })
 
-  it('renders latest score-relevant event at bottom', () => {
+  it('renders football scorers in the scoreboard', () => {
     render(<CompactFloatingScoreboard match={footballLive} lastUpdated={null} />)
     expect(screen.getByText(/Martinelli/)).toBeDefined()
     expect(screen.getByText(/44'/)).toBeDefined()
@@ -180,5 +180,34 @@ describe('CompactFloatingScoreboard', () => {
       )
       expect(hasAmber).toBe(true)
     })
+  })
+
+  it('renders team logos when available', () => {
+    const matchWithLogos: Match = {
+      ...footballLive,
+      homeTeam: { ...footballLive.homeTeam, logo: 'https://example.com/arsenal.png' },
+      awayTeam: { ...footballLive.awayTeam, logo: 'https://example.com/chelsea.png' },
+    }
+    render(<CompactFloatingScoreboard match={matchWithLogos} lastUpdated={null} />)
+    expect(screen.getByAltText('Arsenal logo')).toBeDefined()
+    expect(screen.getByAltText('Chelsea logo')).toBeDefined()
+  })
+
+  it('renders initials fallback when team logo is missing', () => {
+    render(<CompactFloatingScoreboard match={footballLive} lastUpdated={null} />)
+    expect(screen.getByLabelText('Arsenal logo')).toBeDefined()
+    expect(screen.getByLabelText('Chelsea logo')).toBeDefined()
+    expect(screen.getByText('AR')).toBeDefined()
+    expect(screen.getByText('CH')).toBeDefined()
+  })
+
+  it('groups football scorers under each team', () => {
+    render(<CompactFloatingScoreboard match={footballLive} lastUpdated={null} />)
+    expect(screen.getByText(/Saka/)).toBeDefined()
+    expect(screen.getByText(/Martinelli/)).toBeDefined()
+    expect(screen.getByText(/Palmer/)).toBeDefined()
+    expect(screen.getByText(/23'/)).toBeDefined()
+    expect(screen.getByText(/44'/)).toBeDefined()
+    expect(screen.getByText(/38'/)).toBeDefined()
   })
 })
