@@ -13,18 +13,15 @@ function mockFetchResponse(data: unknown, options?: { ok?: boolean; status?: num
 describe('useLiveMatchPolling', () => {
   beforeEach(() => {
     vi.useFakeTimers()
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({ matches: [{ id: '1', status: 'live' }] }),
-      }),
-    )
+    vi.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ matches: [{ id: '1', status: 'live' }] }),
+    } as unknown as Response)
   })
 
   afterEach(() => {
     vi.useRealTimers()
-    vi.unstubAllGlobals()
+    vi.restoreAllMocks()
   })
 
   it('continues polling when keepAlive=true even if document.hidden is true', async () => {
@@ -279,7 +276,7 @@ describe('useLiveMatchPolling', () => {
     })
   })
 
-  it('does not stop when response is empty array', async () => {
+  it('does not stop on first empty response, only after second consecutive', async () => {
     const fetchSpy = vi.mocked(fetch)
 
     const { result } = renderHook(() =>
@@ -290,7 +287,28 @@ describe('useLiveMatchPolling', () => {
       expect(fetchSpy).toHaveBeenCalledTimes(1)
     })
 
-    // Empty matches array should not count as missing
+    // First miss: empty response should not stop immediately
+    fetchSpy.mockResolvedValue(mockFetchResponse({ matches: [] }))
+    await vi.advanceTimersByTimeAsync(30000)
+
+    expect(fetchSpy).toHaveBeenCalledTimes(2)
+    await vi.waitFor(() => {
+      expect(result.current.isPolling).toBe(true)
+    })
+  })
+
+  it('resets missing count when match reappears after empty responses', async () => {
+    const fetchSpy = vi.mocked(fetch)
+
+    const { result } = renderHook(() =>
+      useLiveMatchPolling({ url: '/api/match/1', keepAlive: true, trackedMatchId: '1' }),
+    )
+
+    await vi.waitFor(() => {
+      expect(fetchSpy).toHaveBeenCalledTimes(1)
+    })
+
+    // Tick 1: tracked match missing in empty response (count=1)
     fetchSpy.mockResolvedValue(mockFetchResponse({ matches: [] }))
     await vi.advanceTimersByTimeAsync(30000)
     expect(fetchSpy).toHaveBeenCalledTimes(2)
@@ -298,10 +316,25 @@ describe('useLiveMatchPolling', () => {
       expect(result.current.isPolling).toBe(true)
     })
 
+    // Tick 2: tracked match reappears → counter resets
+    fetchSpy.mockResolvedValue(mockFetchResponse({ matches: [{ id: '1', status: 'live' }] }))
     await vi.advanceTimersByTimeAsync(30000)
     expect(fetchSpy).toHaveBeenCalledTimes(3)
     await vi.waitFor(() => {
       expect(result.current.isPolling).toBe(true)
+    })
+
+    // Tick 3: tracked match missing again (count=1, not enough)
+    fetchSpy.mockResolvedValue(mockFetchResponse({ matches: [] }))
+    await vi.advanceTimersByTimeAsync(30000)
+    expect(fetchSpy).toHaveBeenCalledTimes(4)
+    expect(result.current.isPolling).toBe(true)
+
+    // Tick 4: second consecutive miss → stops
+    await vi.advanceTimersByTimeAsync(30000)
+    expect(fetchSpy).toHaveBeenCalledTimes(5)
+    await vi.waitFor(() => {
+      expect(result.current.isPolling).toBe(false)
     })
   })
 

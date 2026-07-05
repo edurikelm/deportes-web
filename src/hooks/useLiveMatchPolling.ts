@@ -143,7 +143,7 @@ export function useLiveMatchPolling(options: UseLiveMatchPollingOptions): UseMat
                   setIsPolling(false)
                   return
                 }
-                if (!tracked && matches.length > 0) {
+                if (!tracked) {
                   missingCountRef.current++
                   if (missingCountRef.current >= 2) {
                     finishedRef.current = true
@@ -151,7 +151,7 @@ export function useLiveMatchPolling(options: UseLiveMatchPollingOptions): UseMat
                     setIsPolling(false)
                     return
                   }
-                } else if (tracked) {
+                } else {
                   missingCountRef.current = 0
                 }
               }
