@@ -152,4 +152,21 @@ describe('FloatingPipShell', () => {
     )
     expect(screen.getByText(/Reintentando en 120s/i)).toBeDefined()
   })
+
+  it('keeps scoreboard visible when pollingError is present', () => {
+    render(
+      <MatchClockProvider lastFetchTimestamp={undefined}>
+        <FloatingPipShell
+          match={match}
+          lastUpdated={null}
+          onClose={vi.fn()}
+          onViewDetail={vi.fn()}
+          pollingError="Network error"
+        />
+      </MatchClockProvider>,
+    )
+    expect(screen.getByText('Home Team')).toBeDefined()
+    expect(screen.getByText('Away Team')).toBeDefined()
+    expect(screen.getByText(/Error al actualizar/i)).toBeDefined()
+  })
 })

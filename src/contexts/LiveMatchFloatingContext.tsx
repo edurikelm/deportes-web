@@ -176,7 +176,7 @@ export function LiveMatchFloatingProvider({
         closeFloatingMatch()
       }
     },
-    [isSupported, api, closeFloatingMatch, handleViewDetail],
+    [isSupported, api, closeFloatingMatch, handleViewDetail, pipError],
   )
 
   const value: LiveMatchFloatingContextValue = {
