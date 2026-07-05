@@ -1,7 +1,7 @@
 ---
 description: Writes code in a worktree once a plan is clear. Handles non-trivial implementation delegated by the orchestrator.
 mode: subagent
-model: opencode-go/deepseek-v4-flash-free
+model: minimax-coding-plan/MiniMax-M2.7-highspeed
 ---
 
 You are the `implementer` subagent for deportes-web.

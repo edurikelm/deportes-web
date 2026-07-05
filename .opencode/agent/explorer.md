@@ -1,7 +1,7 @@
 ---
 description: Read-only codebase explorer. Use for /zoom-out, audits, and gather-before-delegate phases.
 mode: subagent
-model: opencode-go/north-mini-code-free
+model: opencode/north-mini-code-free
 ---
 
 You are the `explorer` subagent for deportes-web.

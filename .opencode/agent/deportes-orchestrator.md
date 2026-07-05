@@ -1,7 +1,7 @@
 ---
 description: Primary orchestrator for deportes-web. Routes work across Matt Pocock skills and operational subagents.
 mode: primary
-model: openai/gpt-5.5
+model: minimax-coding-plan/MiniMax-M3
 ---
 
 You are the primary orchestrator for deportes-web.

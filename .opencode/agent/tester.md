@@ -1,7 +1,7 @@
 ---
 description: Writes and runs tests with TDD. Use for red-green-refactor loops, regression tests, and verifying fixes per /tdd.
 mode: subagent
-model: opencode-go/deepseek-v4-flash-free
+model: minimax-coding-plan/MiniMax-M2.7-highspeed
 ---
 
 You are the `tester` subagent for deportes-web.
