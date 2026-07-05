@@ -312,7 +312,7 @@ describe('MatchSportDetailPage', () => {
       expect(openFloatingMatch).not.toHaveBeenCalled()
     })
 
-    it('pauses main detail polling when PiP is open', async () => {
+    it('keeps main detail polling enabled when PiP is open so page can hydrate on direct navigation', async () => {
       mockUseLiveMatchFloating.mockReturnValue({
         isSupported: true,
         isFloatingOpen: true,
@@ -326,7 +326,49 @@ describe('MatchSportDetailPage', () => {
 
       render(<MatchSportDetailPage />)
 
-      expect(lastMatchPollingEnabled).toBe(false)
+      expect(lastMatchPollingEnabled).toBe(true)
+    })
+
+    it('hydrates page from main polling when navigating directly with PiP open showing different match', async () => {
+      mockUseLiveMatchFloating.mockReturnValue({
+        isSupported: true,
+        isFloatingOpen: true,
+        floatingMatch: { id: 'different-match' } as unknown as Match,
+        openFloatingMatch: vi.fn(),
+        updateFloatingContent: vi.fn(),
+        closeFloatingMatch: vi.fn(),
+        setFloatingError: vi.fn(),
+        lastUpdated: null,
+      })
+
+      render(<MatchSportDetailPage />)
+
+      capturedOnData?.({ match: makeMatch() })
+
+      await waitFor(() => {
+        expect(screen.getByText('Arsenal')).toBeDefined()
+        expect(screen.getByText('Chelsea')).toBeDefined()
+      })
+    })
+
+    it('PiP polling updates do not call openFloatingMatch even when page state is updated', async () => {
+      const openFloatingMatch = vi.fn()
+      mockUseLiveMatchFloating.mockReturnValue({
+        isSupported: true,
+        isFloatingOpen: true,
+        floatingMatch: { id: 'f1' } as unknown as Match,
+        openFloatingMatch,
+        updateFloatingContent: vi.fn(),
+        closeFloatingMatch: vi.fn(),
+        setFloatingError: vi.fn(),
+        lastUpdated: null,
+      })
+
+      render(<MatchSportDetailPage />)
+
+      capturedLiveOnData?.({ matches: [makeMatch({ score: { home: 3, away: 1 } })] })
+
+      expect(openFloatingMatch).not.toHaveBeenCalled()
     })
 
     it('shows open state and Cerrar button when current match is floating', async () => {

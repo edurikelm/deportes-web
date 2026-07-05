@@ -67,7 +67,7 @@ export default function MatchSportDetailPage() {
 
   const { lastUpdated, error } = useMatchPolling({
     url: matchId ? `/api/matches/${matchId}` : undefined,
-    enabled: isValidSport && !isFloatingOpen,
+    enabled: isValidSport,
     onData: (data) => {
       const matchData = data as { match?: Match }
       setMatch(matchData.match ?? null)
